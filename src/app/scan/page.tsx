@@ -114,31 +114,31 @@ export default function ScanPage() {
 
   if (!isReadyToScan) {
     return (
-      <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center p-6 text-gray-900 font-sans">
-         <div className="w-full max-sm flex flex-col gap-6 relative">
-            <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-[#00F5FF]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="min-h-[100dvh] bg-slate-50 flex flex-col items-center justify-center p-6 text-slate-900 font-sans">
+         <div className="w-full max-w-sm flex flex-col gap-8 relative">
+            <div className="absolute top-[-15%] left-[-15%] w-[50vw] h-[50vw] bg-[#10b981]/5 rounded-full blur-[80px] pointer-events-none" />
 
-            <button onClick={() => router.back()} className="self-start text-gray-400 hover:text-gray-900 transition-colors p-2 -ml-2 z-10">
+            <button onClick={() => router.back()} className="self-start text-slate-300 hover:text-slate-900 transition-all p-2 -ml-2 z-10">
               <ChevronLeft size={32} />
             </button>
             
             <div className="text-left z-10">
-              <h1 className="text-3xl font-black tracking-tight text-gray-900">準備掃描</h1>
-              <p className="text-sm text-gray-500 mt-2 font-semibold">先輸入金額，再開啟相機一次掃完卡片</p>
+              <h1 className="text-4xl font-black tracking-tight text-slate-900">批量掃描</h1>
+              <p className="text-sm text-slate-400 mt-2 font-bold uppercase tracking-widest">Setup your session</p>
             </div>
 
-            <div className="space-y-5 z-10">
+            <div className="space-y-6 z-10">
               <div className="flex flex-col gap-3">
-                <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-1">選擇商家</label>
-                <div className="flex gap-3 overflow-x-auto pb-4 pt-1 scrollbar-hide snap-x">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Merchant</label>
+                <div className="flex gap-2 overflow-x-auto pb-4 pt-1 scrollbar-hide snap-x">
                   {["7-11", ...customMerchants, "其它自訂"].map((m) => (
                     <button
                       key={m}
                       onClick={() => handleMerchantChange(m)}
-                      className={`shrink-0 px-6 py-4 rounded-3xl font-black transition-all snap-start border-2 text-sm ${
+                      className={`shrink-0 px-6 py-4 rounded-[1.5rem] font-black transition-all snap-start border-2 text-sm ${
                         (isCustomMode && m === "其它自訂") || (!isCustomMode && merchant === m)
-                          ? "bg-gray-900 text-[#00F5FF] border-gray-900 shadow-xl shadow-gray-900/10" 
-                          : "bg-white text-gray-400 border-gray-100 hover:bg-gray-50 shadow-sm"
+                          ? "bg-slate-900 text-[#10b981] border-slate-900 shadow-xl shadow-slate-900/10" 
+                          : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50 shadow-sm"
                       }`}
                     >
                       {m}
@@ -149,34 +149,37 @@ export default function ScanPage() {
                 {isCustomMode && (
                    <input 
                      type="text" 
-                     placeholder="輸入自訂商家名稱..." 
+                     placeholder="商家名稱..." 
                      value={merchant}
                      onChange={(e) => setMerchant(e.target.value)}
-                     className="w-full bg-white border border-gray-200 rounded-[2rem] px-6 py-5 text-xl font-bold text-gray-900 outline-none focus:border-[#00F5FF] focus:ring-4 focus:ring-[#00F5FF]/5 shadow-sm transition-all"
+                     className="w-full bg-white border-2 border-slate-100 rounded-[1.5rem] px-6 py-4 text-xl font-bold text-slate-900 outline-none focus:border-[#10b981] transition-all shadow-sm"
                    />
                 )}
               </div>
 
-              <div className="flex flex-col gap-2">
-                 <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-1">卡片面額 (即將掃描的這一批)</label>
-                 <input 
-                   type="number" 
-                   placeholder="500" 
-                   value={amount}
-                   onChange={(e) => setAmount(Number(e.target.value))}
-                   className="w-full bg-white border border-gray-200 rounded-[2rem] px-6 py-5 text-4xl font-black text-gray-900 outline-none focus:border-[#00F5FF] focus:ring-4 focus:ring-[#00F5FF]/5 shadow-sm transition-all placeholder:text-gray-100"
-                 />
+              <div className="flex flex-col gap-3">
+                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Face Value (Amount)</label>
+                 <div className="relative">
+                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-slate-300">$</span>
+                    <input 
+                      type="number" 
+                      placeholder="500" 
+                      value={amount}
+                      onChange={(e) => setAmount(Number(e.target.value))}
+                      className="w-full bg-white border-2 border-slate-100 rounded-[2rem] pl-12 pr-6 py-6 text-5xl font-black text-slate-900 outline-none focus:border-[#10b981] transition-all shadow-sm placeholder:text-slate-50"
+                    />
+                 </div>
               </div>
 
-              <div className="bg-gray-50 p-6 rounded-[2.5rem] mt-4 border border-gray-100">
-                 <div className="flex items-center justify-between mb-4">
+              <div className="bg-white p-6 rounded-[2rem] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] border border-slate-100">
+                 <div className="flex items-center justify-between">
                     <div>
-                       <h3 className="font-black text-gray-800 text-sm">智慧雙條碼模式</h3>
-                       <p className="text-[10px] text-gray-400 mt-1 font-bold">偵測到 7-11 時將自動開啟兩段辨識</p>
+                       <h3 className="font-black text-slate-800 text-sm">Smart Dual Scan</h3>
+                       <p className="text-[10px] text-slate-400 mt-1 font-bold">Auto-detect Card No. + Password</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" checked={isDualMode} onChange={toggleDualMode} className="sr-only peer" />
-                      <div className="w-14 h-7 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-7 after:transition-all peer-checked:bg-gray-900 shadow-inner"></div>
+                      <div className="w-14 h-7 bg-slate-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-200 after:border after:rounded-full after:h-5 after:w-7 after:transition-all peer-checked:bg-[#10b981] shadow-inner"></div>
                     </label>
                  </div>
               </div>
@@ -184,9 +187,9 @@ export default function ScanPage() {
 
             <button 
               onClick={handleStart}
-              className="w-full mt-8 bg-gray-900 text-white font-black rounded-[2.5rem] py-6 flex items-center justify-center gap-3 transition-all hover:bg-gray-800 active:scale-95 shadow-2xl shadow-gray-900/20 z-10 text-xl"
+              className="w-full mt-4 bg-slate-900 text-[#10b981] font-black rounded-[2.5rem] py-6 flex items-center justify-center gap-4 transition-all hover:bg-slate-800 active:scale-95 shadow-2xl shadow-slate-900/10 z-10 text-xl uppercase tracking-widest"
             >
-              <ScanLine size={28} className="text-[#00F5FF]" /> 開始批量掃描
+              <ScanLine size={32} /> Activate Camera
             </button>
 
          </div>
@@ -211,23 +214,23 @@ export default function ScanPage() {
 
        {/* 錯誤恢復介面 */}
        {scanState === "error" && (
-         <div className="absolute inset-0 z-[70] bg-gray-900 flex flex-col items-center justify-center p-8 text-center">
-            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-6">
-              <ScanLine size={32} className="text-red-500" />
+         <div className="absolute inset-0 z-[70] bg-slate-900 flex flex-col items-center justify-center p-8 text-center">
+            <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+              <ScanLine size={40} className="text-red-500" />
             </div>
-            <h2 className="text-white text-xl font-black mb-2">相機啟動失敗</h2>
-            <div className="flex flex-col w-full gap-3 mt-8">
+            <h2 className="text-white text-2xl font-black mb-2">相機啟動失敗</h2>
+            <div className="flex flex-col w-full gap-4 mt-8 max-w-xs">
               <button 
                 onClick={() => startScanning()}
-                className="w-full bg-[#00F5FF] text-gray-900 font-black py-4 rounded-2xl"
+                className="w-full bg-[#10b981] text-white font-black py-5 rounded-3xl shadow-xl shadow-[#10b981]/20"
               >
-                嘗試重啟
+                嘗試重啟相機
               </button>
               <button 
                 onClick={handleClose}
-                className="w-full bg-white/10 text-white font-bold py-4 rounded-2xl"
+                className="w-full bg-white/10 text-slate-400 font-bold py-4 rounded-3xl"
               >
-                返回
+                取消並返回
               </button>
             </div>
          </div>
@@ -235,5 +238,6 @@ export default function ScanPage() {
     </div>
   );
 }
+
 
 
