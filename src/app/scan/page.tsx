@@ -104,7 +104,7 @@ export default function ScanPage() {
               <div className="flex flex-col gap-3">
                 <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-1">選擇商家</label>
                 <div className="flex gap-3 overflow-x-auto pb-4 pt-1 scrollbar-hide snap-x">
-                  {["7-11", "全家", "星巴克", "大潤發", ...customMerchants, "其它自訂"].map((m) => (
+                  {["7-11", ...customMerchants, "其它自訂"].map((m) => (
                     <button
                       key={m}
                       onClick={() => {
@@ -200,18 +200,48 @@ export default function ScanPage() {
          onSkipSecondary={skipSecondary} 
          isBatch={isBatch} 
        />
+
+       {/* 錯誤恢復介面 */}
+       {scanState === "error" && (
+         <div className="absolute inset-0 z-[70] bg-gray-900 flex flex-col items-center justify-center p-8 text-center">
+            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-6">
+              <ScanLine size={32} className="text-red-500" />
+            </div>
+            <h2 className="text-white text-xl font-black mb-2">相機啟動失敗</h2>
+            <p className="text-gray-400 text-sm mb-8 leading-relaxed">
+              {errorMsg || "這可能是因為相機權限被拒絕，或是其他應用程式正在佔用相機。"}
+            </p>
+            <div className="flex flex-col w-full gap-3">
+              <button 
+                onClick={() => startScanning()}
+                className="w-full bg-[#00F5FF] text-gray-900 font-black py-4 rounded-2xl active:scale-95 transition-all"
+              >
+                嘗試重新啟動
+              </button>
+              <button 
+                onClick={handleClose}
+                className="w-full bg-white/10 text-white font-bold py-4 rounded-2xl active:scale-95 transition-all"
+              >
+                返回設定
+              </button>
+            </div>
+         </div>
+       )}
        
        {/* 頂部狀態顯示 (浮動在 Overlay 之上) */}
-       <div className="absolute top-10 left-0 right-0 px-6 z-[60] flex justify-between items-center pointer-events-none">
-          <div className="hidden md:block" /> {/* Dummy for centering */}
-          <div className="bg-black/40 backdrop-blur-xl border border-white/10 px-6 py-2 rounded-full flex items-center gap-3 shadow-2xl">
-             <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-             <span className="text-white font-black text-xs tracking-tighter uppercase">
-               {isDualMode ? "Dual Scan Active" : "Single Scan Active"}
-             </span>
-          </div>
-          <div className="hidden md:block" />
-       </div>
+       {scanState !== "error" && (
+         <div className="absolute top-10 left-0 right-0 px-6 z-[60] flex justify-between items-center pointer-events-none">
+            <div className="hidden md:block" />
+            <div className="bg-black/40 backdrop-blur-xl border border-white/10 px-6 py-2 rounded-full flex items-center gap-3 shadow-2xl">
+               <div className={`w-2 h-2 rounded-full ${scanState === "success" ? "bg-green-500" : "bg-red-500 animate-pulse"}`} />
+               <span className="text-white font-black text-xs tracking-tighter uppercase">
+                 {scanState === "success" ? "Success" : isDualMode ? "Dual Scan Mode" : "Single Scan Mode"}
+               </span>
+            </div>
+            <div className="hidden md:block" />
+         </div>
+       )}
     </div>
   );
 }
+

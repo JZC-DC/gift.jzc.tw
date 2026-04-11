@@ -26,95 +26,109 @@ export default function Dashboard() {
   }, [cards, activeTab]);
 
   const merchants = useMemo(() => {
-    const defaultMerchants = ["7-11", "全家"];
+    const defaultMerchants = ["7-11"];
     const existing = cards.filter(c => c.deletedAt === null).map(c => c.merchant);
     return Array.from(new Set([...defaultMerchants, ...existing]));
   }, [cards]);
 
-  if (loading || !user) return <div className="min-h-[100dvh] bg-gray-50 flex items-center justify-center font-bold tracking-widest text-[#00F5FF] animate-pulse">載入中...</div>;
+  if (loading || !user) return <div className="min-h-[100dvh] bg-white flex items-center justify-center font-black tracking-widest text-gray-900 animate-pulse text-lg">LOADING...</div>;
 
   return (
-    <div className="min-h-[100dvh] bg-gray-50 pb-32 relative text-gray-900 font-sans">
+    <div className="min-h-[100dvh] bg-white pb-32 relative text-gray-900 font-sans">
       
       {/* 頂部標題 */}
-      <header className="px-6 py-6 flex justify-between items-center bg-gray-50 z-10 relative max-w-4xl mx-auto">
+      <header className="px-8 py-8 flex justify-between items-center z-10 relative max-w-4xl mx-auto">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">我的卡包</h1>
-          <p className="text-sm text-gray-500 font-medium tracking-wide mt-1">Hello, {user.displayName || "使用者"}</p>
+          <h1 className="text-3xl font-black tracking-tighter text-gray-900">我的卡包</h1>
+          <p className="text-xs text-gray-400 font-bold tracking-widest mt-1 uppercase opacity-60">Ready to spend · {user.displayName || "User"}</p>
         </div>
       </header>
 
       {/* 商家分類捲動條 (Tabs) */}
-      <div className="px-6 pb-4 overflow-x-auto whitespace-nowrap scrollbar-hide sticky top-0 bg-gray-50/90 backdrop-blur-xl z-20 pt-2 border-b border-gray-200/50">
+      <div className="px-8 pb-4 overflow-x-auto whitespace-nowrap scrollbar-hide sticky top-0 bg-white/80 backdrop-blur-xl z-20 pt-2 border-b border-gray-50">
         <div className="flex gap-2 max-w-4xl mx-auto">
           {merchants.map((m) => (
             <button
               key={m}
               onClick={() => setActiveTab(m)}
-              className={`px-5 py-2.5 rounded-full font-bold text-sm transition-all flex items-center gap-2 ${
+              className={`px-6 py-3 rounded-full font-black text-xs transition-all flex items-center gap-2 uppercase tracking-widest ${
                 activeTab === m 
-                  ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20' 
-                  : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+                  ? 'bg-gray-900 text-[#00F5FF] shadow-2xl shadow-gray-900/20' 
+                  : 'bg-gray-50 text-gray-400 border border-transparent hover:bg-gray-100'
               }`}
             >
-              <Store size={16} className={activeTab === m ? "text-[#00F5FF]" : "opacity-50"} /> {m} 
+              <Store size={14} className={activeTab === m ? "text-[#00F5FF]" : "opacity-30"} /> {m} 
             </button>
           ))}
         </div>
       </div>
 
       {/* 主要卡片區 */}
-      <main className="px-6 pt-6 max-w-4xl mx-auto">
+      <main className="px-8 pt-8 max-w-4xl mx-auto">
         {displayCards.length === 0 ? (
-          <div className="flex flex-col items-center justify-center mt-20 text-gray-400">
-            <CreditCard size={64} strokeWidth={1} className="opacity-30 mb-6" />
-            <p className="font-semibold text-lg text-gray-500">目前沒有 {activeTab} 的有效卡片</p>
-            <p className="text-sm mt-2">快去為這個商家建檔吧！</p>
+          <div className="flex flex-col items-center justify-center mt-32 text-gray-400">
+            <CreditCard size={80} strokeWidth={1} className="opacity-10 mb-8" />
+            <p className="font-black text-xl text-gray-900 tracking-tight">空空如也</p>
+            <p className="text-xs mt-2 font-bold text-gray-400">目前沒有 {activeTab} 的有效卡片</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {displayCards.map((card) => (
-              <div key={card.id} className="relative bg-white p-5 rounded-[1.5rem] shadow-sm border border-gray-100 flex flex-col justify-between transition-transform overflow-hidden group hover:shadow-md">
+              <div key={card.id} className="relative aspect-[1.6/1] w-full bg-gray-900 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col justify-between p-8 group transition-all active:scale-[0.98]">
                  
-                 {/* 視覺裝飾光暈 */}
-                 <div className="absolute top-[-20%] right-[-10%] w-24 h-24 bg-[#00F5FF]/10 rounded-full blur-2xl pointer-events-none" />
+                 {/* 晶片與裝飾 */}
+                 <div className="absolute top-8 left-8 w-12 h-10 bg-gradient-to-br from-amber-200 to-amber-500 rounded-lg opacity-80 blur-[0.5px] border border-amber-600/20 flex flex-col justify-around p-1.5 overflow-hidden">
+                    <div className="w-full h-[1px] bg-amber-700/20" />
+                    <div className="w-full h-[1px] bg-amber-700/20" />
+                    <div className="w-full h-[1px] bg-amber-700/20" />
+                 </div>
 
-                 <div className="flex justify-between items-start z-10">
-                   <div className="w-12 h-12 rounded-[1rem] bg-gray-50 flex items-center justify-center border border-gray-100">
-                      <CreditCard size={24} className="text-gray-300" />
-                   </div>
-                   <h2 className="text-3xl font-black text-gray-900 tracking-tighter">
-                     <span className="text-sm font-bold text-gray-400 mr-1">$</span>
-                     {card.amount}
-                   </h2>
+                 {/* 商家 Logo / 名稱 */}
+                 <div className="absolute top-8 right-8 text-right">
+                    <span className="text-[#00F5FF] font-black text-xs uppercase tracking-[0.3em] opacity-80">
+                      {card.merchant} Card
+                    </span>
                  </div>
-                 
-                 <div className="mt-6 z-10">
-                   <h3 className="font-bold text-gray-800 leading-tight">{card.name}</h3>
-                   <div className="flex justify-between items-end mt-2">
-                     <p className="text-xs font-mono bg-gray-50 px-2 py-1 rounded inline-block text-gray-400 truncate max-w-[150px] border border-gray-100">
-                       {card.barcode}
-                     </p>
-                     
-                     <button
-                       onClick={() => {
-                         if (confirm("這張卡片裡面的餘額已經確定用完了嗎？")) {
-                           moveToTrash(card.id);
-                         }
-                       }}
-                       className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-90 bg-white shadow-sm border border-transparent hover:border-red-100"
-                       title="移至垃圾桶"
-                     >
-                       <Trash2 size={18} />
-                     </button>
-                   </div>
+
+                 {/* 面額與幣值 */}
+                 <div className="mt-auto flex flex-col items-start">
+                    <span className="text-gray-500 font-black text-[10px] uppercase tracking-widest mb-1">Available Balance</span>
+                    <h2 className="text-5xl font-black text-white tracking-tighter flex items-center gap-1">
+                      <span className="text-lg opacity-40">$</span>
+                      {card.amount}
+                    </h2>
                  </div>
-                 
+
+                 {/* 條碼區域 */}
+                 <div className="mt-6 flex flex-col gap-2">
+                    <div className="w-full h-12 bg-white rounded-lg flex items-center justify-center overflow-hidden px-4 gap-[2px]">
+                       {Array.from({length: 45}).map((_, i) => (
+                         <div key={i} className="h-full bg-gray-900" style={{ width: `${Math.random() > 0.6 ? 2 : 1}px`, opacity: Math.random() > 0.1 ? 1 : 0.2 }} />
+                       ))}
+                    </div>
+                    <div className="flex justify-between items-center px-1">
+                       <p className="text-[10px] font-mono font-bold text-gray-500 tracking-[0.5em]">{card.barcode}</p>
+                       <button
+                         onClick={() => {
+                           if (confirm("這張卡片已耗盡餘額並要移至垃圾桶嗎？")) {
+                             moveToTrash(card.id);
+                           }
+                         }}
+                         className="p-2 text-gray-500 hover:text-red-400 transition-colors"
+                       >
+                         <Trash2 size={16} />
+                       </button>
+                    </div>
+                 </div>
+
+                 {/* 玻璃擬態裝飾 */}
+                 <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#00F5FF]/10 rounded-full blur-3xl pointer-events-none" />
               </div>
             ))}
           </div>
         )}
       </main>
+
 
       {/* 底部導航列 (Bottom Navigation Bar) */}
       <div className="fixed bottom-0 w-full bg-white/90 backdrop-blur-2xl border-t border-gray-100 pb-safe z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]">

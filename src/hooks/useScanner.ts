@@ -18,6 +18,8 @@ export function useScanner(elementId: string) {
   
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const dataRef = useRef<BarcodeData>({ primary: null, secondary: null });
+  const isInitializing = useRef(false);
+  const isMounted = useRef(true);
 
   const triggerVibrate = (pattern: number | number[]) => {
     if (typeof window !== "undefined" && "vibrate" in navigator) {
@@ -31,22 +33,29 @@ export function useScanner(elementId: string) {
         if (scannerRef.current.isScanning) {
           await scannerRef.current.stop();
         }
-        await scannerRef.current.clear();
+        // 額外清理確保 DOM 狀態正確
+        const container = document.getElementById(elementId);
+        if (container) container.innerHTML = ""; 
       } catch (err) {
-        // Quietly fail stop
+        // 忽略中止報錯
       }
       scannerRef.current = null;
     }
-    setScanState("idle");
-  }, []);
+    if (isMounted.current) setScanState("idle");
+  }, [elementId]);
 
   const startScanning = useCallback(async () => {
-    // 延遲啟動以確保 Next.js DOM 已完全掛載
+    if (isInitializing.current) return;
+    
+    isInitializing.current = true;
+    
+    // 給予夠長的延遲確保前一個實例徹底關閉
     setTimeout(async () => {
       try {
-        if (scannerRef.current) {
-          await stopScanning();
-        }
+        if (!isMounted.current) return;
+
+        // 啟動前強制清理舊實例
+        if (scannerRef.current) await stopScanning();
 
         setErrorMsg(null);
         setScanState("scanning-a");
@@ -57,14 +66,10 @@ export function useScanner(elementId: string) {
         scannerRef.current = html5Qrcode;
 
         await html5Qrcode.start(
-          { 
-            facingMode: "environment",
-            width: { min: 640, ideal: 1280 },
-            height: { min: 480, ideal: 720 }
-          }, 
+          { facingMode: "environment" }, 
           {
-            fps: 30, // 追求極速反應
-            // 重點：不提供 qrbox 參數，讓掃描引擎進行全螢幕辨識 (增加容錯率)
+            fps: 18, // 效能平衡點，避免手機過熱當機
+            aspectRatio: 1.77777778, // 鎖定 16:9
             formatsToSupport: [
               Html5QrcodeSupportedFormats.CODE_128,
               Html5QrcodeSupportedFormats.CODE_39,
@@ -80,7 +85,6 @@ export function useScanner(elementId: string) {
           },
           (decodedText) => {
             const currentData = dataRef.current;
-            
             if (!currentData.primary) {
               triggerVibrate(60); 
               currentData.primary = decodedText;
@@ -104,7 +108,7 @@ export function useScanner(elementId: string) {
                 triggerVibrate([50, 50, 50]);
                 setTimeout(() => {
                   if (dataRef.current.secondary) return;
-                  setScanState("scanning-b");
+                  if (isMounted.current) setScanState("scanning-b");
                 }, 1500);
               } else {
                 triggerVibrate([100, 50, 100]);
@@ -115,14 +119,18 @@ export function useScanner(elementId: string) {
               }
             }
           },
-          () => {} // Quietly ignore frame failures
+          () => {} // 靜默忽略幀辨識失敗
         );
       } catch (err: any) {
-        console.error("Scanner start failed:", err);
-        setErrorMsg(err?.message || "相機啟動失敗，請確認是否授予權限或環境光線是否過暗");
-        setScanState("error");
+        console.error("Camera error:", err);
+        if (isMounted.current) {
+          setErrorMsg(err?.message || "無法啟動相機，這可能是因為硬體被其他應用佔用，或者您的權限已關閉。");
+          setScanState("error");
+        }
+      } finally {
+        isInitializing.current = false;
       }
-    }, 350); // 350ms 穩定 DOM
+    }, 450); // 450ms 安全區
   }, [elementId, stopScanning, isDualMode]);
 
   const skipSecondary = useCallback(() => {
@@ -133,7 +141,11 @@ export function useScanner(elementId: string) {
   }, [stopScanning]);
 
   useEffect(() => {
-    return () => { stopScanning(); };
+    isMounted.current = true;
+    return () => { 
+      isMounted.current = false;
+      stopScanning(); 
+    };
   }, [stopScanning]);
 
   return {
@@ -147,4 +159,5 @@ export function useScanner(elementId: string) {
     skipSecondary
   };
 }
+
 
