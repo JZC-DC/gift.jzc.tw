@@ -23,57 +23,42 @@ export default function ScannerOverlay({
   return (
     <div className="absolute inset-0 pointer-events-none flex flex-col overflow-hidden">
        
-       {/* 全螢幕背景遮罩與開口 - v1.6.1 極簡版本 */}
-       <div className="absolute inset-0 z-0">
-          {/* 使用 shadow 技巧產生的遮罩，中央 bg-transparent 保證通透 */}
-          <div 
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[160px] bg-transparent shadow-[0_0_0_1000px_rgba(15,23,42,0.7)] rounded-[2rem]" 
-          />
-       </div>
+       {/* v1.6.2 全透明設計：不使用任何背景遮罩 */}
 
-       {/* 頂部控制欄 */}
+       {/* 頂部控制欄 - 更加精簡透明 */}
        <div className="p-10 flex justify-between items-start pointer-events-auto z-20">
           <button 
             onClick={onClose}
-            className="w-14 h-14 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[1.5rem] flex items-center justify-center text-white active:scale-90 transition-all shadow-2xl"
+            className="w-14 h-14 bg-black/20 backdrop-blur-xl border border-white/10 rounded-[1.5rem] flex items-center justify-center text-white active:scale-90 transition-all shadow-xl"
           >
             <X size={28} />
           </button>
 
           <div className="flex flex-col items-end gap-2">
-             <div className="bg-white/10 backdrop-blur-xl border border-white/20 px-6 py-3 rounded-full flex items-center gap-3">
+             <div className="bg-black/20 backdrop-blur-xl border border-white/10 px-6 py-3 rounded-full flex items-center gap-3">
                 <div className={`w-2 h-2 rounded-full ${scanState === "success" ? "bg-[#34DA4F]" : "bg-[#34DA4F] animate-pulse"}`} />
                 <span className="text-white font-black text-[10px] tracking-[0.2em] uppercase">
-                  {scanState === "scanning-a" ? "正在掃描卡號" : 
-                   scanState === "scanning-b" ? "正在掃描密碼" : 
-                   scanState === "success" ? "辨識完成" : "等待啟動"}
+                  {scanState === "scanning-a" ? "卡號偵測中" : 
+                   scanState === "scanning-b" ? "密碼偵測中" : 
+                   scanState === "success" ? "完成" : "等待"}
                 </span>
              </div>
              {amount !== undefined && amount !== "" && (
-                <div className="text-[#34DA4F] font-black text-3xl tracking-tighter mt-1 bg-white/10 backdrop-blur-xl px-6 py-2 rounded-2xl shadow-2xl border border-white/10">
+                <div className="text-[#34DA4F] font-black text-2xl tracking-tighter mt-1 bg-black/20 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/5">
                   ${amount}
                 </div>
              )}
           </div>
        </div>
 
-       {/* 引導文字 - 簡化 */}
-       <div className="absolute left-1/2 -translate-x-1/2 top-[calc(50%-110px)] z-20 w-full text-center">
-          <p className="text-white/80 font-bold text-sm tracking-[0.3em] uppercase opacity-80">
-             請對準條碼
-          </p>
-       </div>
-
-       {/* 唯一取景窗口輔助標記 */}
+       {/* 唯一對準框架 - v1.6.2 唯一畫面元件 */}
        <div className="flex-1 flex items-center justify-center z-10 p-12">
           <div className="relative w-[320px] h-[160px]">
-            {/* 四個角落的 L 型邊緣 - 白色、簡約、無動效 */}
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-[3px] border-l-[3px] border-white rounded-tl-xl" />
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-[3px] border-r-[3px] border-white rounded-tr-xl" />
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-[3px] border-l-[3px] border-white rounded-bl-xl" />
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-[3px] border-r-[3px] border-white rounded-br-xl" />
-            
-            {/* 掃描雷射線已移除 (v1.6.1) */}
+            {/* 四個角落的標記 - 稍微加粗提高在透明背景下的可視度 */}
+            <div className="absolute top-0 left-0 w-10 h-10 border-t-[4px] border-l-[4px] border-white rounded-tl-2xl drop-shadow-md" />
+            <div className="absolute top-0 right-0 w-10 h-10 border-t-[4px] border-r-[4px] border-white rounded-tr-2xl drop-shadow-md" />
+            <div className="absolute bottom-0 left-0 w-10 h-10 border-b-[4px] border-l-[4px] border-white rounded-bl-2xl drop-shadow-md" />
+            <div className="absolute bottom-0 right-0 w-10 h-10 border-b-[4px] border-r-[4px] border-white rounded-br-2xl drop-shadow-md" />
             
             {scanState === "success" && (
               <div className="absolute inset-0 bg-[#34DA4F]/10 flex items-center justify-center backdrop-blur-sm animate-in fade-in zoom-in duration-500 pointer-events-auto rounded-[2rem]">

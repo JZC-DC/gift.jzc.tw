@@ -80,6 +80,7 @@ export function useScanner(elementId: string) {
             qrbox: { width: 320, height: 160 },
             aspectRatio: 1.77777778,
             disableFlip: true,
+            rememberLastUsedCamera: true,
           },
           (decodedText) => {
             if (isProcessing.current || !isMounted.current) return;
