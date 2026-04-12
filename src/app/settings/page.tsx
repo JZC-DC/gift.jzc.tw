@@ -33,14 +33,15 @@ export default function SettingsPage() {
   return (
     <div className="min-h-[100dvh] bg-gray-50 flex flex-col font-sans text-gray-900 pb-12">
       
-      {/* Header */}
-      <div className="max-w-2xl mx-auto w-full">
-        <header className="px-4 py-6 flex items-center gap-4 bg-gray-50 sticky top-0 z-10">
+      {/* Header - Fixed & Sticky */}
+      <div className="max-w-2xl mx-auto w-full sticky top-0 z-50">
+        <header className="px-4 py-6 flex items-center gap-4 bg-gray-50/80 backdrop-blur-md border-b border-transparent">
           <button onClick={() => router.back()} className="p-2 -ml-2 text-gray-500 active:scale-95 transition-transform">
             <ChevronLeft size={28} />
           </button>
-          <h1 className="text-xl font-bold tracking-tight">個人設定中心</h1>
+          <h1 className="text-xl font-black tracking-tight text-slate-800">設定中心</h1>
         </header>
+      </div>
 
         <main className="p-4 flex flex-col gap-6">
           
