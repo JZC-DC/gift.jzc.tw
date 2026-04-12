@@ -48,7 +48,7 @@ export default function Dashboard() {
           <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
              {/* eslint-disable-next-line @next/next/no-img-element */}
              <img 
-               src="/Logo.png" 
+               src="/logo.png" 
                alt="Logo" 
                className="w-full h-full object-contain"
              />
