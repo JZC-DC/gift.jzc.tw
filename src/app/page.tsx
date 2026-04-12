@@ -42,9 +42,13 @@ export default function Home() {
       <div className="z-10 flex flex-col items-center w-full max-w-sm gap-12 text-center bg-white/70 p-10 rounded-[2.5rem] border border-white shadow-2xl backdrop-blur-2xl">
         
         <div className="flex flex-col items-center">
-          <div className="w-20 h-20 bg-slate-900 rounded-[1.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-slate-900/20 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <CreditCard size={40} className="text-[#34DA4F]" />
+          <div className="w-20 h-20 rounded-[1.5rem] flex items-center justify-center mb-8 shadow-2xl relative overflow-hidden bg-white border border-slate-100 p-2">
+             {/* eslint-disable-next-line @next/next/no-img-element */}
+             <img 
+               src="/logo.png" 
+               alt="SGCM Logo" 
+               className="w-full h-full object-cover rounded-xl"
+             />
           </div>
           <h1 className="text-3xl font-black tracking-tight text-slate-900">
             智慧商品卡管家

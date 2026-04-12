@@ -54,7 +54,7 @@ export default function Dashboard() {
              />
           </div>
           <h1 className="text-xl font-black tracking-tight text-slate-900">
-            卡片管家 <span className="text-[10px] text-[#34DA4F] ml-1 font-black align-top">v1.4.0</span>
+            卡片管家 <span className="text-[10px] text-[#34DA4F] ml-1 font-black align-top">v1.5.0</span>
           </h1>
         </div>
         <div className="flex items-center gap-2 bg-white/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-100 shadow-sm">
@@ -129,7 +129,7 @@ export default function Dashboard() {
         <div className="flex justify-between items-center w-full max-w-md mx-auto relative h-full">
           
           <button className="text-[#34DA4F] active:scale-95 transition-all">
-             <Library size={28} strokeWidth={2.5} />
+             <CreditCard size={28} strokeWidth={2.5} />
           </button>
 
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">

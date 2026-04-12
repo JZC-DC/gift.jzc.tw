@@ -67,25 +67,19 @@ export function useScanner(elementId: string) {
         dataRef.current = { primary: null, secondary: null };
         setData({ primary: null, secondary: null });
 
-        const html5Qrcode = new Html5Qrcode(elementId);
+        const html5Qrcode = new Html5Qrcode(elementId, {
+          formatsToSupport: [ Html5QrcodeSupportedFormats.CODE_128 ],
+          verbose: false
+        });
         scannerRef.current = html5Qrcode;
 
         await html5Qrcode.start(
           { facingMode: "environment" }, 
           {
-            fps: 30,
+            fps: 35,
+            qrbox: { width: 300, height: 120 },
             aspectRatio: 1.77777778,
             disableFlip: true, // 一維條碼不需要鏡像翻轉，節省 CPU
-            formatsToSupport: [
-              Html5QrcodeSupportedFormats.CODE_128,
-              Html5QrcodeSupportedFormats.CODE_39,
-              Html5QrcodeSupportedFormats.CODE_93,
-              Html5QrcodeSupportedFormats.EAN_13,
-              Html5QrcodeSupportedFormats.EAN_8,
-              Html5QrcodeSupportedFormats.ITF,
-              Html5QrcodeSupportedFormats.UPC_A,
-              Html5QrcodeSupportedFormats.UPC_E,
-            ]
           },
           (decodedText) => {
             if (isProcessing.current || !isMounted.current) return;
