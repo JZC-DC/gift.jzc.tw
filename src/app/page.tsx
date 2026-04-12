@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CreditCard } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
@@ -82,16 +82,19 @@ export default function Home() {
 
       </div>
 
-      {/* 底部隱私條款提示 */}
+      {/* 底部隱私條款提示 - 改為標準 Link 以利 Google 爬蟲掃描 */}
       <div className="absolute bottom-10 left-0 w-full text-center px-6">
-         <p className="text-[10px] text-slate-300 font-bold leading-relaxed max-w-xs mx-auto">
-           登入即代表您同意本程式之 
-           <button onClick={() => router.push("/settings/privacy")} className="text-slate-400 underline underline-offset-4 ml-1 hover:text-[#34DA4F] transition-colors">
-              隱私權摘要與法律條款
-           </button>
-           <br />
-           本程式不會保存您的資料，數據均存放於您的 Google Drive。
-         </p>
+         <div className="flex flex-col items-center gap-2">
+           <p className="text-[10px] text-slate-300 font-bold leading-relaxed max-w-xs mx-auto">
+             登入即代表您同意本程式之 
+             <Link href="/settings/privacy" className="text-slate-400 underline underline-offset-4 ml-1 hover:text-[#34DA4F] transition-colors">
+                隱私權政策與法律條款
+             </Link>
+           </p>
+           <p className="text-[10px] text-slate-200 font-medium">
+             本程式不保存個人資料，數據存儲於您的 Google Drive。
+           </p>
+         </div>
       </div>
     </main>
   );

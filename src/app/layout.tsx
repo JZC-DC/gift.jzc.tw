@@ -20,6 +20,9 @@ export const metadata: Metadata = {
     apple: "/icons/icon-192x192.png",
   },
   manifest: "/manifest.json",
+  verification: {
+    google: "cef01WpDC7VBZmuRk_0KfG_BZu5OFo4oyyK-9OMeUlg",
+  },
 };
 
 export const viewport: Viewport = {
