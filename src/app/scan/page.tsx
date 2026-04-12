@@ -224,7 +224,12 @@ export default function ScanPage() {
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col overflow-hidden">
        {/* 掃描引擎容器 */}
-       <div id="reader-video" className="absolute inset-0 w-full h-full object-cover"></div>
+       <video 
+         id="reader-video" 
+         className="absolute inset-0 w-full h-full object-cover"
+         playsInline
+         muted
+       ></video>
        
        {/* 覆蓋層組件 */}
        <ScannerOverlay 

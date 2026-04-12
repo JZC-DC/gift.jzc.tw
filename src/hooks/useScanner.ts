@@ -1,26 +1,29 @@
 "use client";
 
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import { useState, useCallback, useRef, useEffect } from "react";
+import { readBarcodesFromImageData, ZXingReadOptions } from "zxing-wasm/reader";
 
-export type ScanState = "idle" | "scanning-a" | "scanning-b" | "success" | "error" | "duplicate";
+export type ScanState = "idle" | "scanning-a" | "scanning-b" | "success" | "error" | "duplicate" | "loading";
 
 interface BarcodeData {
   primary: string | null;
   secondary: string | null;
 }
 
-export function useScanner(elementId: string) {
+export function useScanner(videoElementId: string) {
   const [scanState, setScanState] = useState<ScanState>("idle");
   const [data, setData] = useState<BarcodeData>({ primary: null, secondary: null });
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isDualMode, setIsDualMode] = useState(false);
   
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const dataRef = useRef<BarcodeData>({ primary: null, secondary: null });
   const isInitializing = useRef(false);
   const isMounted = useRef(true);
-  const isProcessing = useRef(false); // 核心：代碼級別的鎖，取代硬體暫停
+  const isProcessing = useRef(false);
+  const animationFrameRef = useRef<number | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const triggerVibrate = (pattern: number | number[]) => {
     if (typeof window !== "undefined" && "vibrate" in navigator) {
@@ -30,20 +33,25 @@ export function useScanner(elementId: string) {
 
   const stopScanning = useCallback(async () => {
     isProcessing.current = false;
-    if (scannerRef.current) {
-      try {
-        if (scannerRef.current.isScanning) {
-          await scannerRef.current.stop();
-        }
-        const container = document.getElementById(elementId);
-        if (container) container.innerHTML = ""; 
-      } catch (err) {
-        // Quiet fail
-      }
-      scannerRef.current = null;
+    
+    // 取消動畫循環
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
+
+    // 停止相機流
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+
     if (isMounted.current) setScanState("idle");
-  }, [elementId]);
+  }, []);
 
   const resetData = useCallback(() => {
     dataRef.current = { primary: null, secondary: null };
@@ -52,51 +60,49 @@ export function useScanner(elementId: string) {
     isProcessing.current = false;
   }, []);
 
-  const startScanning = useCallback(async () => {
-    if (isInitializing.current) return;
-    isInitializing.current = true;
-    
-    setTimeout(async () => {
-      try {
-        if (!isMounted.current) return;
-        if (scannerRef.current) await stopScanning();
+  // 核心辨識循環
+  const scanLoop = useCallback(async () => {
+    if (!isMounted.current || scanState === "idle" || scanState === "success") return;
+    if (isProcessing.current) {
+      animationFrameRef.current = requestAnimationFrame(scanLoop);
+      return;
+    }
 
-        setErrorMsg(null);
-        setScanState("scanning-a");
-        isProcessing.current = false;
-        dataRef.current = { primary: null, secondary: null };
-        setData({ primary: null, secondary: null });
+    const video = videoRef.current;
+    if (video && video.readyState === video.HAVE_ENOUGH_DATA) {
+      if (!canvasRef.current) {
+        canvasRef.current = document.createElement("canvas");
+      }
+      
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      
+      if (ctx) {
+        // 設定 Canvas 大小 (優化：縮放至偵測窗口比例以提升性能)
+        const dWidth = video.videoWidth;
+        const dHeight = video.videoHeight;
+        
+        // 為了極速，我們只取中央區域 (對比 qrbox)
+        // 假設 qrbox 是居中的 320x160 (比例在 video 中需換算)
+        canvas.width = dWidth;
+        canvas.height = dHeight;
+        ctx.drawImage(video, 0, 0, dWidth, dHeight);
+        
+        try {
+          const imageData = ctx.getImageData(0, 0, dWidth, dHeight);
+          const options: ZXingReadOptions = {
+            formats: ["Code128"],
+            tryHarder: true, // v1.7.1 WASM 特色：增加暴力破解深度以提升成功率
+          };
 
-        const html5Qrcode = new Html5Qrcode(elementId, {
-          formatsToSupport: [ Html5QrcodeSupportedFormats.CODE_128 ],
-          verbose: false,
-          experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true
-          }
-        });
-        scannerRef.current = html5Qrcode;
-
-        await html5Qrcode.start(
-          { 
-            facingMode: "environment",
-            // @ts-ignore - Some browsers support advanced constraints
-            focusMode: "continuous"
-          }, 
-          {
-            fps: 40,
-            qrbox: { width: 320, height: 160 },
-            aspectRatio: 1.77777778,
-            disableFlip: true,
-            rememberLastUsedCamera: true,
-          },
-          (decodedText) => {
-            if (isProcessing.current || !isMounted.current) return;
-
+          const results = await readBarcodesFromImageData(imageData, options);
+          
+          if (results.length > 0 && isMounted.current && !isProcessing.current) {
+            const decodedText = results[0].text;
             const currentData = dataRef.current;
-            
+
             // 處理第一段條碼 (卡號)
             if (!currentData.primary) {
-              // 7-11 預設規則：16 位
               if (decodedText.length === 16 || !decodedText.match(/^\d+$/)) {
                  triggerVibrate(60); 
                  currentData.primary = decodedText;
@@ -126,7 +132,6 @@ export function useScanner(elementId: string) {
                   }
                 }, 1800);
               } else {
-                // 7-11 密碼通常是 10 位，或者非卡號的另一條
                 triggerVibrate([100, 50, 100]);
                 currentData.secondary = decodedText;
                 setData({ ...currentData });
@@ -134,21 +139,66 @@ export function useScanner(elementId: string) {
                 setScanState("success");
               }
             }
-          },
-          () => {} 
-        );
-      } catch (err: any) {
-        console.error("Camera startup failed:", err);
-        if (isMounted.current) {
-          setErrorMsg("相機啟動失敗");
-          setScanState("error");
+          }
+        } catch (e) {
+          // 忽略解碼失敗，進入下一幀
         }
-      } finally {
-        isInitializing.current = false;
       }
-    }, 400); 
-  }, [elementId, stopScanning, isDualMode]);
+    }
+    
+    // 控制掃描頻率 (約 100ms 一次，避免效能暴走)
+    setTimeout(() => {
+      animationFrameRef.current = requestAnimationFrame(scanLoop);
+    }, 80); 
+  }, [scanState, isDualMode]);
 
+  const startScanning = useCallback(async () => {
+    if (isInitializing.current) return;
+    isInitializing.current = true;
+    
+    try {
+      if (!isMounted.current) return;
+      await stopScanning();
+
+      setErrorMsg(null);
+      setScanState("loading");
+      isProcessing.current = false;
+      dataRef.current = { primary: null, secondary: null };
+      setData({ primary: null, secondary: null });
+
+      const constraints = {
+        video: {
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          // 請求持續對焦
+          advanced: [{ focusMode: "continuous" }] as any
+        }
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+      
+      const video = document.getElementById(videoElementId) as HTMLVideoElement;
+      if (video) {
+        videoRef.current = video;
+        video.srcObject = stream;
+        video.setAttribute("playsinline", "true");
+        await video.play();
+        
+        setScanState("scanning-a");
+        animationFrameRef.current = requestAnimationFrame(scanLoop);
+      }
+    } catch (err: any) {
+      console.error("WASM Scanner startup failed:", err);
+      if (isMounted.current) {
+        setErrorMsg("無法啟動相機");
+        setScanState("error");
+      }
+    } finally {
+      isInitializing.current = false;
+    }
+  }, [videoElementId, stopScanning, scanLoop]);
 
   const skipSecondary = useCallback(() => {
     if (dataRef.current.primary) {
@@ -177,7 +227,3 @@ export function useScanner(elementId: string) {
     skipSecondary
   };
 }
-
-
-
-

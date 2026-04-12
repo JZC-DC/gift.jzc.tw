@@ -30,26 +30,9 @@ body {
   min-height: 100dvh;
 }
 
-/* 掃描器性能優化與介面淨化 (v1.6.1) */
+
+/* 掃描器性能優化與介面淨化 (v1.7.1 WASM) */
 #reader-video {
   border: none !important;
-}
-
-#reader-video video {
   object-fit: cover !important;
-}
-
-/* 隱藏庫內建的所有標記框、掃描線、遮罩、提示字與區域 (v1.6.2) */
-#reader-video * {
-  border: none !important;
-  box-shadow: none !important;
-}
-
-#reader-video div:not(#reader-video), 
-#reader-video canvas, 
-#reader-video span, 
-#reader-video b,
-#reader-video img,
-#reader-video a {
-  display: none !important;
 }
