@@ -10,7 +10,7 @@ import Link from "next/link";
 
 export default function Dashboard() {
   const { user, loading, isSyncing, syncError } = useAuthStore();
-  const { cards, moveToTrash, customMerchants } = useCardStore();
+  const { cards, moveToTrash } = useCardStore();
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState("全部");
@@ -54,7 +54,7 @@ export default function Dashboard() {
              />
           </div>
           <h1 className="text-xl font-black tracking-tight text-slate-900">
-            卡片管家 <span className="text-[10px] text-slate-300 ml-1 font-black align-top">v1.11.0</span>
+            卡片管家 <span className="text-[10px] text-slate-300 ml-1 font-black align-top">v1.12.0</span>
           </h1>
         </div>
         <div className="flex items-center gap-2 bg-white/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-100 shadow-sm">
@@ -72,7 +72,7 @@ export default function Dashboard() {
       {/* 商家分類 (Tabs) - 固定高度 */}
       <div className="px-6 py-2 overflow-x-auto whitespace-nowrap scrollbar-hide shrink-0 z-20 border-b border-slate-100/50">
         <div className="flex gap-2">
-          {["全部", "7-11", ...customMerchants].map((m) => (
+          {["全部", ...merchants].map((m) => (
             <button
               key={m}
               onClick={() => setActiveTab(m)}

@@ -98,6 +98,13 @@ export function useDriveSync() {
           setCards(syncedCards as any);
         }
 
+        // 同步 customMerchants（跨裝置支援）
+        if (cleanedDb.customMerchants?.length > 0) {
+          for (const m of cleanedDb.customMerchants) {
+            addCustomMerchant(m);
+          }
+        }
+
         // 若清理了過期卡片，回寫雲端
         if (changed) {
           await writeDriveDB(user.driveToken!, fileId, cleanedDb);

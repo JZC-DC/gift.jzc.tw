@@ -23,7 +23,7 @@ export default function ScannerOverlay({
   return (
     <div className="absolute inset-0 pointer-events-none flex flex-col overflow-hidden">
        
-       {/* v1.11.0 Fluid UX: 掃描成功瞬發閃光 */}
+       {/* v1.12.0 Fluid UX: 掃描成功瞬發閃光 */}
        {(scanState === "success" || scanState === "cooldown") && (
          <div className="absolute inset-0 bg-white/30 animate-out fade-out duration-500 z-[100] pointer-events-none" />
        )}
@@ -82,7 +82,7 @@ export default function ScannerOverlay({
           </div>
        </div>
 
-       {/* 底部功能與 Session 列表 (v1.11.0 核心) */}
+       {/* 底部功能與 Session 列表 (v1.12.0 核心) */}
        <div className="z-30 pointer-events-auto mt-auto pb-safe">
           {/* 中間輔助按鈕 */}
           {scanState === "scanning-b" && (

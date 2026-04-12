@@ -18,7 +18,6 @@ export default function ScanPage() {
     errorMsg, 
     isDualMode, 
     setIsDualMode, 
-    resetData,
     skipSecondary 
   } = useScanner("reader-video");
   
@@ -28,7 +27,7 @@ export default function ScanPage() {
   const [merchant, setMerchant] = useState("7-11");
   const [isCustomMode, setIsCustomMode] = useState(false);
   const [amount, setAmount] = useState<number | "">("");
-  const [isBatch, setIsBatch] = useState(true);
+  const [isBatch] = useState(true);
 
   // 初始化模式偏好
   useEffect(() => {
@@ -90,7 +89,7 @@ export default function ScanPage() {
       .sort((a, b) => b.createdAt - a.createdAt);
   }, [cards, sessionStartTime]);
 
-  // v1.11.0 自動存檔與 Session 追蹤
+  // v1.12.0 自動存檔與 Session 追蹤
   useEffect(() => {
     if (scanState === "success" || scanState === "cooldown") {
       // 必須有有效的卡號才執行
