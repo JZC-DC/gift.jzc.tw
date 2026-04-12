@@ -10,7 +10,7 @@ import {
 
 export function useDriveSync() {
   const { user, setSyncStatus, setSyncError } = useAuthStore();
-  const { cards, customMerchants, setCards, isInitialized, finishInitialization } = useCardStore();
+  const { cards, customMerchants, setCards, markCardSynced, isInitialized, finishInitialization } = useCardStore();
   const sheetIdRef = useRef<string | null>(null);
   const isSyncSuccessRef = useRef(false);
   const lastProcessedCardsRef = useRef<string>("");
@@ -36,16 +36,13 @@ export function useDriveSync() {
         
         const localCards = useCardStore.getState().cards;
 
-        // 資料遷移邏輯：
-        // 如果遠端試算表是空的，但本地有卡片 (v1.2.2 升級過來的)，則將本地卡片全量上傳
+        // 資料整合與同步狀態初始化
         if (remoteCards.length === 0 && localCards.length > 0) {
-           console.log("Migrating local cards to Google Sheets...");
-           for (const card of localCards) {
-             await syncCardToSheet(user.driveToken!, spreadsheetId, card as any);
-           }
+           // 本地遷移
         } else if (remoteCards.length > 0) {
-           // 否則，以遠端資料為準覆蓋本地 (解決重整後資料洗掉問題)
-           setCards(remoteCards as any);
+           // 標記雲端抓下來的都已同步
+           const syncedRemote = remoteCards.map(c => ({ ...c, isSynced: true }));
+           setCards(syncedRemote as any);
         }
         
         isSyncSuccessRef.current = true;
@@ -54,59 +51,49 @@ export function useDriveSync() {
       } catch (error: any) {
         console.error("Sheets Init Error:", error);
         setSyncStatus(false, null);
-        
-        // 如果錯誤訊息包含 401，代表 Token 過期，這是一個確定的 Sync Error
-        if (error.message?.includes("401")) {
-          console.warn("Sync Error: Drive Token Expired. User needs to re-login.");
-        }
-        
-        setSyncError(true);
+        if (error.message?.includes("401")) setSyncError(true);
       }
     };
 
     initSheets();
   }, [user?.driveToken, setCards, setSyncStatus, setSyncError, finishInitialization]);
 
-  // 2. 即時同步邏輯：當監聽到卡片變動時立即執行
+  // 2. v1.11.0: 背景補傳隊列 (Background Retry Queue)
   useEffect(() => {
     if (!user?.driveToken || !isInitialized || !sheetIdRef.current) return;
-    
-    // 使用字串化比對，避免因為 React 渲染導致重複觸發
-    const currentCardsStr = JSON.stringify(cards);
-    if (currentCardsStr === lastProcessedCardsRef.current) return;
-    
-    const syncProcess = async () => {
-      try {
-        setSyncStatus(true, useAuthStore.getState().lastSync);
-        
-        // 找出變動的卡片進行同步 (這裏為了簡單先採防抖，但實際上 Scan 完會手動觸發)
-        // 這裡維持自動同步作為後援
-        lastProcessedCardsRef.current = currentCardsStr;
-        
-        // 目前 Sheets API 封裝是以單筆 Upsert 為主，這裡先採全量比對或單筆觸發
-        // 改進為：只對最後一筆變動進行同步 (或全量同步)
-        // 在 1.3.0 中，我們對 addCard 進行了特殊處理，這裡主要處理刪除/移至垃圾桶
-      } catch (error) {
-        setSyncError(true);
-      } finally {
-        setSyncStatus(false, Date.now());
+
+    const processQueue = async () => {
+      const unsyncedCards = cards.filter(c => !c.isSynced);
+      if (unsyncedCards.length === 0) return;
+
+      console.log(`[Sync] Found ${unsyncedCards.length} unsynced cards. Retrying...`);
+      
+      for (const card of unsyncedCards) {
+        try {
+          await syncCardToSheet(user.driveToken!, sheetIdRef.current!, card as any);
+          markCardSynced(card.id, true);
+        } catch (e) {
+          console.error(`[Sync] Failed to sync card ${card.id}`, e);
+          setSyncError(true);
+        }
       }
     };
 
-    const timer = setTimeout(syncProcess, 2000);
-    return () => clearTimeout(timer);
-  }, [cards, user?.driveToken, isInitialized, setSyncStatus, setSyncError]);
+    const timer = setInterval(processQueue, 30000); // 每 30 秒自動檢查一次
+    return () => clearInterval(timer);
+  }, [cards, user?.driveToken, isInitialized, sheetIdRef.current, markCardSynced, setSyncError]);
 
   return {
-    // 導出一個手動同步方法給 Scan 頁面使用
     syncImmediately: async (card: any) => {
       if (!user?.driveToken || !sheetIdRef.current) return;
       try {
         setSyncStatus(true, useAuthStore.getState().lastSync);
         await syncCardToSheet(user.driveToken, sheetIdRef.current, card);
+        markCardSynced(card.id, true);
         setSyncStatus(false, Date.now());
       } catch (e) {
         setSyncError(true);
+        markCardSynced(card.id, false);
       }
     }
   };

@@ -9,6 +9,7 @@ export interface Card {
   amount: number;
   createdAt: number;
   deletedAt: number | null; // null 代表正常，有時間戳記代表已丟棄至垃圾桶
+  isSynced?: boolean; // 新增：是否已同步至雲端
 }
 
 interface CardStore {
@@ -23,6 +24,7 @@ interface CardStore {
   restoreFromTrash: (id: string) => void;
   deletePermanently: (id: string) => void;
   addCustomMerchant: (merchant: string) => void;
+  markCardSynced: (id: string, isSynced: boolean) => void;
   finishInitialization: () => void;
 }
 
@@ -78,6 +80,12 @@ export const useCardStore = create<CardStore>((set, get) => ({
       if (state.customMerchants.includes(merchant)) return state;
       return { customMerchants: [...state.customMerchants, merchant] };
     });
+  },
+  
+  markCardSynced: (id, isSynced) => {
+    set((state) => ({
+      cards: state.cards.map(c => c.id === id ? { ...c, isSynced } : c)
+    }));
   },
   
   setCards: (cards) => set({ cards }),

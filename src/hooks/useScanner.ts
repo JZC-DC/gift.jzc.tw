@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 
-export type ScanState = "idle" | "scanning-a" | "scanning-b" | "success" | "error" | "duplicate" | "loading";
+export type ScanState = "idle" | "scanning-a" | "scanning-b" | "success" | "error" | "duplicate" | "loading" | "cooldown";
 
 interface BarcodeData {
   primary: string | null;
@@ -59,8 +59,18 @@ export function useScanner(elementId: string) {
     isProcessing.current = false;
   }, []);
 
+  // v1.11.0: 自動冷卻器，實現無感連續掃描
+  const startCooldown = useCallback(() => {
+    setScanState("cooldown");
+    setTimeout(() => {
+      if (isMounted.current) {
+        resetData();
+      }
+    }, 2500); // 2.5 秒冷卻時間，讓使用者看到結果
+  }, [resetData]);
+
   const handleDetected = useCallback((result: any) => {
-    if (isProcessing.current || !isMounted.current) return;
+    if (isProcessing.current || !isMounted.current || scanState === "cooldown" || scanState === "success") return;
     
     // 支援單一或多重結果
     const results = Array.isArray(result) ? result : [result];
@@ -90,6 +100,7 @@ export function useScanner(elementId: string) {
       dataRef.current = { primary: foundPrimary, secondary: foundSecondary };
       setData({ primary: foundPrimary, secondary: foundSecondary });
       setScanState("success");
+      startCooldown(); 
       return;
     }
 
@@ -108,6 +119,7 @@ export function useScanner(elementId: string) {
 
         if (!isDualMode) {
           setScanState("success");
+          startCooldown();
         } else {
           setScanState("scanning-b");
           setTimeout(() => { if (isMounted.current) isProcessing.current = false; }, 1500);
@@ -119,8 +131,9 @@ export function useScanner(elementId: string) {
        currentData.secondary = text;
        setData({ ...currentData });
        setScanState("success");
+       startCooldown();
     }
-  }, [isDualMode]);
+  }, [isDualMode, scanState, startCooldown]);
 
   const startScanning = useCallback(async () => {
     if (isInitializing.current) return;
@@ -184,8 +197,9 @@ export function useScanner(elementId: string) {
     if (dataRef.current.primary) {
       isProcessing.current = true;
       setScanState("success");
+      startCooldown();
     }
-  }, []);
+  }, [startCooldown]);
 
   useEffect(() => {
     isMounted.current = true;

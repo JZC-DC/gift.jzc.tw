@@ -80,25 +80,28 @@ export default function ScanPage() {
   }, [isReadyToScan, startScanning, stopScanning]);
 
   const { syncImmediately } = useDriveSync();
+  const [sessionCards, setSessionCards] = useState<any[]>([]);
+  const lastScannedId = useRef<string | null>(null);
 
-  // v1.1.7 自動存檔邏輯 (v1.2.3 安全化與相容化) (v1.3.0 即時同步)
+  // v1.11.0 自動存檔與 Session 追蹤
   useEffect(() => {
     if (scanState === "success") {
-      // 1. 輸入清理與安全化 (Sanitization)
       const rawMerchant = isCustomMode && !merchant.trim() ? "未命名商家" : merchant;
-      const cleanMerchant = rawMerchant
-        .trim()
-        .replace(/[<>]/g, "") 
-        .substring(0, 20);
+      const cleanMerchant = rawMerchant.trim().replace(/[<>]/g, "").substring(0, 20);
 
-      // 2. UUID 相容性處理 (Polyfill)
       const generateId = () => {
         if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
         return Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
       };
 
+      const newId = generateId();
+      
+      // 防止 React StrictMode 或重複觸發
+      if (lastScannedId.current === data.primary) return;
+      lastScannedId.current = data.primary;
+
       const newCard = {
-        id: generateId(),
+        id: newId,
         merchant: cleanMerchant,
         name: cleanMerchant === "7-11" ? "7-11 商品卡" : `${cleanMerchant} 禮物卡`,
         barcode: data.primary || "",
@@ -106,20 +109,18 @@ export default function ScanPage() {
         amount: Number(amount),
         createdAt: Date.now(),
         deletedAt: null,
+        isSynced: false
       };
 
       const added = addCard(newCard);
-      
-      // 3. v1.3.0 即時同步至 Google Sheets
-      if (added && syncImmediately) {
-        syncImmediately(newCard);
+      if (added) {
+        setSessionCards(prev => [newCard, ...prev]);
+        if (syncImmediately) syncImmediately(newCard);
       }
+    } else if (scanState === "scanning-a" || scanState === "idle") {
+      lastScannedId.current = null; // 重設追蹤
     }
   }, [scanState, addCard, data, merchant, isCustomMode, amount, syncImmediately]);
-
-  const handleNext = () => {
-    resetData();
-  };
 
   const handleFinish = () => {
     stopScanning();
@@ -231,9 +232,9 @@ export default function ScanPage() {
          scanState={scanState} 
          onClose={handleClose} 
          onSkipSecondary={skipSecondary} 
-         onNext={handleNext}
          onFinish={handleFinish}
          amount={amount}
+         sessionCards={sessionCards}
        />
 
        {/* 錯誤恢復介面 */}
