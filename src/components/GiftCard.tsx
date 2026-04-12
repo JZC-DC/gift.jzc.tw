@@ -23,7 +23,7 @@ const GiftCard = memo(({ card, onDelete }: GiftCardProps) => {
         
         {/* 科技背景紋理 - FaceTime Green 版 */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.04]" 
-             style={{ backgroundImage: 'radial-gradient(#34c759 1.2px, transparent 1.2px)', backgroundSize: '20px 20px' }} />
+             style={{ backgroundImage: 'radial-gradient(#34DA4F 1.2px, transparent 1.2px)', backgroundSize: '20px 20px' }} />
 
         {/* 右上角放大按鈕 */}
         <button 
@@ -37,7 +37,7 @@ const GiftCard = memo(({ card, onDelete }: GiftCardProps) => {
         <div className="w-full text-center space-y-1 mb-5 relative z-10">
           <h3 className="text-xs font-black text-slate-300 tracking-[0.2em] uppercase">{card.merchant}</h3>
           <div className="flex items-center justify-center gap-0.5">
-            <span className="text-lg font-black text-[#34c759]">$</span>
+            <span className="text-lg font-black text-[#34DA4F]">$</span>
             <h2 className="text-4xl font-black text-slate-900 tracking-tighter">
               {card.amount}
             </h2>
@@ -106,7 +106,7 @@ const GiftCard = memo(({ card, onDelete }: GiftCardProps) => {
            </button>
            
            <div className="w-full max-w-md text-center space-y-2 mb-12">
-              <p className="text-[#34c759] font-black tracking-[0.5em] uppercase text-xs">Full Screen Scan</p>
+              <p className="text-[#34DA4F] font-black tracking-[0.5em] uppercase text-xs">Full Screen Scan</p>
               <h2 className="text-4xl font-black text-slate-900">{card.merchant}</h2>
               <p className="text-2xl font-black text-slate-400">${card.amount}</p>
            </div>

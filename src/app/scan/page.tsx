@@ -6,6 +6,7 @@ import { useScanner } from "@/hooks/useScanner";
 import ScannerOverlay from "@/components/ScannerOverlay";
 import { useCardStore } from "@/store/useCardStore";
 import { ScanLine, ChevronLeft, Layers, Minus } from "lucide-react";
+import { useDriveSync } from "@/hooks/useDriveSync";
 
 export default function ScanPage() {
   const router = useRouter();
@@ -78,15 +79,17 @@ export default function ScanPage() {
     return () => { stopScanning(); };
   }, [isReadyToScan, startScanning, stopScanning]);
 
-  // v1.1.7 自動存檔邏輯 (v1.2.3 安全化與相容化)
+  const { syncImmediately } = useDriveSync();
+
+  // v1.1.7 自動存檔邏輯 (v1.2.3 安全化與相容化) (v1.3.0 即時同步)
   useEffect(() => {
     if (scanState === "success") {
       // 1. 輸入清理與安全化 (Sanitization)
       const rawMerchant = isCustomMode && !merchant.trim() ? "未命名商家" : merchant;
       const cleanMerchant = rawMerchant
         .trim()
-        .replace(/[<>]/g, "") // 阻斷基礎 XSS
-        .substring(0, 20); // 限制長度
+        .replace(/[<>]/g, "") 
+        .substring(0, 20);
 
       // 2. UUID 相容性處理 (Polyfill)
       const generateId = () => {
@@ -94,7 +97,7 @@ export default function ScanPage() {
         return Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
       };
 
-      addCard({
+      const newCard = {
         id: generateId(),
         merchant: cleanMerchant,
         name: cleanMerchant === "7-11" ? "7-11 商品卡" : `${cleanMerchant} 禮物卡`,
@@ -103,9 +106,16 @@ export default function ScanPage() {
         amount: Number(amount),
         createdAt: Date.now(),
         deletedAt: null,
-      });
+      };
+
+      const added = addCard(newCard);
+      
+      // 3. v1.3.0 即時同步至 Google Sheets
+      if (added && syncImmediately) {
+        syncImmediately(newCard);
+      }
     }
-  }, [scanState, addCard, data, merchant, isCustomMode, amount]);
+  }, [scanState, addCard, data, merchant, isCustomMode, amount, syncImmediately]);
 
   const handleNext = () => {
     resetData();
@@ -128,7 +138,7 @@ export default function ScanPage() {
     return (
       <div className="min-h-[100dvh] bg-slate-50 flex flex-col items-center justify-center p-6 text-slate-900 font-sans">
          <div className="w-full max-w-sm flex flex-col gap-8 relative">
-            <div className="absolute top-[-15%] left-[-15%] w-[50vw] h-[50vw] bg-[#34c759]/5 rounded-full blur-[80px] pointer-events-none" />
+            <div className="absolute top-[-15%] left-[-15%] w-[50vw] h-[50vw] bg-[#34DA4F]/10 rounded-full blur-[80px] pointer-events-none" />
 
             <button onClick={() => router.back()} className="self-start text-slate-300 hover:text-slate-900 transition-all p-2 -ml-2 z-10">
               <ChevronLeft size={32} />
@@ -136,7 +146,7 @@ export default function ScanPage() {
             
             <div className="text-left z-10">
               <h1 className="text-4xl font-black tracking-tight text-slate-900">批量掃描</h1>
-              <p className="text-sm text-[#34c759] mt-2 font-black uppercase tracking-[0.4em]">Setup Session</p>
+              <p className="text-sm text-[#34DA4F] mt-2 font-black uppercase tracking-[0.4em]">Setup Session</p>
             </div>
 
             <div className="space-y-6 z-10">
@@ -149,7 +159,7 @@ export default function ScanPage() {
                       onClick={() => handleMerchantChange(m)}
                       className={`shrink-0 px-6 py-4 rounded-[1.5rem] font-black transition-all snap-start border-2 text-sm ${
                         (isCustomMode && m === "其它自訂") || (!isCustomMode && merchant === m)
-                          ? "bg-slate-900 text-[#34c759] border-slate-900 shadow-xl shadow-slate-900/10" 
+                          ? "bg-slate-900 text-[#34DA4F] border-slate-900 shadow-xl shadow-slate-900/10" 
                           : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50 shadow-sm"
                       }`}
                     >
@@ -164,7 +174,7 @@ export default function ScanPage() {
                      placeholder="請輸入商家名稱..." 
                      value={merchant}
                      onChange={(e) => setMerchant(e.target.value)}
-                     className="w-full bg-white border-2 border-slate-100 rounded-[1.5rem] px-6 py-4 text-xl font-black text-slate-900 outline-none focus:border-[#34c759] transition-all shadow-sm"
+                     className="w-full bg-white border-2 border-slate-100 rounded-[1.5rem] px-6 py-4 text-xl font-black text-slate-900 outline-none focus:border-[#34DA4F] transition-all shadow-sm"
                    />
                 )}
               </div>
@@ -172,13 +182,13 @@ export default function ScanPage() {
               <div className="flex flex-col gap-3">
                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">卡片面額 (金額)</label>
                  <div className="relative">
-                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-[#34c759]">$</span>
+                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-[#34DA4F]">$</span>
                     <input 
                       type="number" 
                       placeholder="500" 
                       value={amount}
                       onChange={(e) => setAmount(Number(e.target.value))}
-                      className="w-full bg-white border-2 border-slate-100 rounded-[2rem] pl-12 pr-6 py-6 text-5xl font-black text-slate-900 outline-none focus:border-[#34c759] transition-all shadow-sm placeholder:text-slate-50"
+                      className="w-full bg-white border-2 border-slate-100 rounded-[2rem] pl-12 pr-6 py-6 text-5xl font-black text-slate-900 outline-none focus:border-[#34DA4F] transition-all shadow-sm placeholder:text-slate-50"
                     />
                  </div>
               </div>
@@ -191,7 +201,7 @@ export default function ScanPage() {
                     </div>
                     <button 
                       onClick={toggleDualMode}
-                      className={`w-14 h-8 rounded-full transition-all relative ${isDualMode ? 'bg-[#34c759]' : 'bg-slate-200'}`}
+                      className={`w-14 h-8 rounded-full transition-all relative ${isDualMode ? 'bg-[#34DA4F]' : 'bg-slate-200'}`}
                     >
                        <div className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform shadow-md ${isDualMode ? 'translate-x-6' : 'translate-x-0'}`} />
                     </button>
@@ -201,7 +211,7 @@ export default function ScanPage() {
 
             <button 
               onClick={handleStart}
-              className="w-full mt-4 bg-gradient-to-b from-[#34c759] to-[#28cd41] text-white font-black rounded-full py-6 flex items-center justify-center gap-4 transition-all active:scale-95 shadow-2xl shadow-[#34c759]/30 z-10 text-xl uppercase tracking-widest"
+              className="w-full mt-4 bg-gradient-to-b from-[#5CF777] via-[#34DA4F] to-[#0EBE2C] text-white font-black rounded-full py-6 flex items-center justify-center gap-4 transition-all active:scale-95 shadow-2xl shadow-[#34DA4F]/30 z-10 text-xl uppercase tracking-widest"
             >
               <ScanLine size={32} /> 啟動相機掃描
             </button>
@@ -237,7 +247,7 @@ export default function ScanPage() {
             <div className="flex flex-col w-full gap-4 mt-8 max-w-xs">
               <button 
                 onClick={() => startScanning()}
-                className="w-full bg-[#34c759] text-white font-black py-5 rounded-3xl shadow-xl shadow-[#34c759]/20"
+                className="w-full bg-[#34DA4F] text-white font-black py-5 rounded-3xl shadow-xl shadow-[#34DA4F]/20"
               >
                 嘗試重啟相機
               </button>

@@ -40,7 +40,7 @@ export default function Dashboard() {
 
   return (
     <div className="h-screen h-[100dvh] bg-slate-50 flex flex-col overflow-hidden text-slate-900 font-sans relative">
-      <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-[#34c759]/5 to-transparent pointer-events-none" />
+      <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-[#34DA4F]/10 via-transparent to-transparent pointer-events-none" />
 
       {/* 頂部標題 - 縮小版且固定高度 */}
       <header className="px-6 pt-6 pb-2 grow-0 flex justify-between items-center z-20 shrink-0">
@@ -54,14 +54,14 @@ export default function Dashboard() {
              />
           </div>
           <h1 className="text-xl font-black tracking-tight text-slate-900">
-            卡片管家 <span className="text-[10px] text-[#34c759] ml-1 font-black align-top">v1.2.3</span>
+            卡片管家 <span className="text-[10px] text-[#34DA4F] ml-1 font-black align-top">v1.3.0</span>
           </h1>
         </div>
         <div className="flex items-center gap-2 bg-white/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-100 shadow-sm">
            <div className={`w-2 h-2 rounded-full ${
              syncError ? 'bg-red-500 animate-pulse shadow-[0_0_8px_red]' : 
-             isSyncing ? 'bg-[#34c759] animate-pulse shadow-[0_0_8px_#34c759]' : 
-             'bg-[#34c759]'
+             isSyncing ? 'bg-[#34DA4F] animate-pulse shadow-[0_0_8px_#34DA4F]' : 
+             'bg-[#34DA4F]'
            }`} />
            <span className={`text-[9px] font-black uppercase ${syncError ? 'text-red-500' : 'text-slate-400'}`}>
              {syncError ? 'Sync Error' : 'Drive Sync'}
@@ -78,7 +78,7 @@ export default function Dashboard() {
               onClick={() => setActiveTab(m)}
               className={`px-5 py-2 rounded-full font-black text-xs transition-all flex items-center gap-2 uppercase tracking-widest ${
                 activeTab === m 
-                  ? 'bg-slate-900 text-[#34c759] shadow-lg' 
+                  ? 'bg-slate-900 text-[#34DA4F] shadow-lg' 
                   : 'bg-white text-slate-300 border border-slate-100'
               }`}
             >
@@ -128,14 +128,14 @@ export default function Dashboard() {
       <div className="h-20 bg-white/95 backdrop-blur-3xl border-t border-slate-100 shrink-0 z-30 flex justify-between items-center px-16">
         <div className="flex justify-between items-center w-full max-w-md mx-auto relative h-full">
           
-          <button className="text-[#34c759] active:scale-95 transition-all">
+          <button className="text-[#34DA4F] active:scale-95 transition-all">
              <Library size={28} strokeWidth={2.5} />
           </button>
 
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">
              <Link 
                href="/scan"
-               className="bg-gradient-to-b from-[#34c759] to-[#28cd41] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl shadow-[#34c759]/30 active:scale-90 transition-all border-4 border-white"
+               className="bg-gradient-to-b from-[#5CF777] via-[#34DA4F] to-[#0EBE2C] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl shadow-[#34DA4F]/30 active:scale-90 transition-all border-4 border-white"
              >
                <ScanLine size={28} />
              </Link>

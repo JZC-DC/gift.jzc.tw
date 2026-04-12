@@ -3,10 +3,11 @@
 :root {
   --background: #f8fafc; /* Slate 50 */
   --foreground: #1e293b; /* Slate 800 */
-  --primary: #34c759;    /* FaceTime Green */
-  --primary-dark: #28cd41; /* FaceTime Green Darker */
-  --primary-gradient: linear-gradient(180deg, #34c759 0%, #28cd41 100%);
-  --card-shadow: 0 20px 50px -12px rgba(52, 199, 89, 0.12);
+  --primary: #34DA4F;    /* New Vibrant Green (Middle Color) */
+  --primary-light: #5CF777; 
+  --primary-dark: #0EBE2C;
+  --primary-gradient: linear-gradient(180deg, #5CF777 0%, #34DA4F 50%, #0EBE2C 100%);
+  --card-shadow: 0 20px 50px -12px rgba(52, 218, 79, 0.15);
 }
 
 @media (prefers-color-scheme: dark) {
