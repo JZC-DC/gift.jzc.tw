@@ -4,7 +4,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useCardStore } from "@/store/useCardStore";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
-import { ScanLine, CreditCard, Store, Settings, LayoutGrid, Library } from "lucide-react";
+import { ScanLine, CreditCard, Store, Settings } from "lucide-react";
 import GiftCard from "@/components/GiftCard";
 import Link from "next/link";
 
@@ -48,7 +48,7 @@ export default function Dashboard() {
           <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
              {/* eslint-disable-next-line @next/next/no-img-element */}
              <img 
-               src="/logo.png" 
+               src="/Logo.png" 
                alt="Logo" 
                className="w-full h-full object-contain"
              />

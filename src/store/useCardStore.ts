@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface Card {
   id: string;
@@ -8,8 +9,8 @@ export interface Card {
   secondaryBarcode: string | null; // 第二組條碼 (密碼)
   amount: number;
   createdAt: number;
-  deletedAt: number | null; // null 代表正常，有時間戳記代表已丟棄至垃圾桶
-  isSynced?: boolean; // 新增：是否已同步至雲端
+  deletedAt: number | null;
+  isSynced?: boolean;
 }
 
 interface CardStore {
@@ -28,66 +29,77 @@ interface CardStore {
   finishInitialization: () => void;
 }
 
-export const useCardStore = create<CardStore>((set, get) => ({
-  cards: [],
-  isPro: false,
-  isInitialized: false,
-  customMerchants: [],
-  
-  finishInitialization: () => set({ isInitialized: true }),
-  addCard: (newCard) => {
-    const { cards, isPro } = get();
-    
-    // 商業邏輯：防呆，檢測是否已經掃過相同的卡片
-    const isDuplicate = cards.some(c => c.barcode === newCard.barcode);
-    if (isDuplicate) {
-      alert("⚠️ 此卡片早已被掃描存檔，請更換下一張！");
-      return false; // 拒絕寫入
+export const useCardStore = create<CardStore>()(
+  persist(
+    (set, get) => ({
+      cards: [],
+      isPro: false,
+      isInitialized: false,
+      customMerchants: [],
+
+      finishInitialization: () => set({ isInitialized: true }),
+
+      addCard: (newCard) => {
+        const { cards, isPro } = get();
+
+        const isDuplicate = cards.some(c => c.barcode === newCard.barcode);
+        if (isDuplicate) {
+          alert("⚠️ 此卡片早已被掃描存檔，請更換下一張！");
+          return false;
+        }
+
+        const activeCardsCount = cards.filter(c => c.deletedAt === null).length;
+        if (!isPro && activeCardsCount >= 25) {
+          alert("已達免費版上限 (25張)，請升級 PRO 解鎖無限存取！");
+          return false;
+        }
+
+        set((state) => ({ cards: [...state.cards, newCard] }));
+        return true;
+      },
+
+      moveToTrash: (id) => {
+        set((state) => ({
+          cards: state.cards.map(c => c.id === id ? { ...c, deletedAt: Date.now() } : c)
+        }));
+      },
+
+      restoreFromTrash: (id) => {
+        set((state) => ({
+          cards: state.cards.map(c => c.id === id ? { ...c, deletedAt: null } : c)
+        }));
+      },
+
+      deletePermanently: (id) => {
+        set((state) => ({
+          cards: state.cards.filter(c => c.id !== id)
+        }));
+      },
+
+      addCustomMerchant: (merchant) => {
+        set((state) => {
+          if (state.customMerchants.includes(merchant)) return state;
+          return { customMerchants: [...state.customMerchants, merchant] };
+        });
+      },
+
+      markCardSynced: (id, isSynced) => {
+        set((state) => ({
+          cards: state.cards.map(c => c.id === id ? { ...c, isSynced } : c)
+        }));
+      },
+
+      setCards: (cards) => set({ cards }),
+      setProStatus: (isPro) => set({ isPro }),
+    }),
+    {
+      name: "sgcm-cards-v1", // localStorage 的 key 名稱
+      // 只持久化 cards 和 customMerchants，不持久化 isInitialized
+      partialize: (state) => ({
+        cards: state.cards,
+        isPro: state.isPro,
+        customMerchants: state.customMerchants,
+      }),
     }
-    
-    // 商業邏輯：Freemium 限制只計算「非垃圾桶內」的有效卡片
-    const activeCardsCount = cards.filter(c => c.deletedAt === null).length;
-    if (!isPro && activeCardsCount >= 25) {
-      alert("已達免費版上限 (25張)，請升級 PRO 解鎖無限存取！");
-      return false;
-    }
-    
-    set((state) => ({ cards: [...state.cards, newCard] }));
-    return true;
-  },
-
-  moveToTrash: (id) => {
-    set((state) => ({
-      cards: state.cards.map(c => c.id === id ? { ...c, deletedAt: Date.now() } : c)
-    }));
-  },
-
-  restoreFromTrash: (id) => {
-    set((state) => ({
-      cards: state.cards.map(c => c.id === id ? { ...c, deletedAt: null } : c)
-    }));
-  },
-
-  deletePermanently: (id) => {
-    set((state) => ({
-      cards: state.cards.filter(c => c.id !== id)
-    }));
-  },
-
-  addCustomMerchant: (merchant) => {
-    set((state) => {
-      // 避免重複新增
-      if (state.customMerchants.includes(merchant)) return state;
-      return { customMerchants: [...state.customMerchants, merchant] };
-    });
-  },
-  
-  markCardSynced: (id, isSynced) => {
-    set((state) => ({
-      cards: state.cards.map(c => c.id === id ? { ...c, isSynced } : c)
-    }));
-  },
-  
-  setCards: (cards) => set({ cards }),
-  setProStatus: (isPro) => set({ isPro }),
-}));
+  )
+);

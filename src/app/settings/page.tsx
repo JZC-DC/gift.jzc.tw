@@ -5,16 +5,12 @@ import { useCardStore } from "@/store/useCardStore";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signOut } from "next-auth/react";
-import { ChevronLeft, LogOut, Trash2, Plus, Store, RotateCcw, CloudSync, RefreshCw, ShieldCheck, ChevronRight } from "lucide-react";
-import { useDriveSync } from "@/hooks/useDriveSync";
+import { ChevronLeft, LogOut, Trash2, Plus, Store, RotateCcw, RefreshCw, ShieldCheck, ChevronRight } from "lucide-react";
 
 export default function SettingsPage() {
   const router = useRouter();
   const { user, isSyncing, lastSync } = useAuthStore();
   const { cards, customMerchants, addCustomMerchant, restoreFromTrash, deletePermanently } = useCardStore();
-  
-  // v1.3.0 同步鉤子
-  const sync = useDriveSync();
   
   const [newMerchant, setNewMerchant] = useState("");
 
@@ -54,7 +50,7 @@ export default function SettingsPage() {
                    <h3 className="text-[10px] font-black text-[#34DA4F] uppercase tracking-[0.2em]">Google Drive 實時大數據</h3>
                    <div className="flex items-center gap-2">
                       <p className="text-2xl font-black text-slate-800">
-                        {isSyncing ? "數據對話中..." : "雲端試算表已對齊"}
+                        {isSyncing ? "同步中..." : "Google Drive 雲端已對齊"}
                       </p>
                       {isSyncing && <RefreshCw size={18} className="text-[#34DA4F] animate-spin" />}
                    </div>
@@ -65,7 +61,7 @@ export default function SettingsPage() {
                     className="p-3 bg-slate-50 text-[#34DA4F] rounded-2xl active:scale-90 transition-all border border-slate-100 shadow-sm"
                     title="重新初始化同步"
                   >
-                    <CloudSync size={20} />
+                    <RefreshCw size={20} className="text-[#34DA4F]" />
                   </button>
                 )}
              </div>

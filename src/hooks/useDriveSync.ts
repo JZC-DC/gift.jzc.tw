@@ -1,100 +1,151 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCardStore } from "@/store/useCardStore";
-import { 
-  getOrCreateDatabaseSheet, 
-  fetchCardsFromSheet, 
-  syncCardToSheet, 
-  cleanupTrashInSheet 
-} from "@/lib/sheets";
+import {
+  getOrCreateDriveFile,
+  readDriveDB,
+  writeDriveDB,
+  cleanupTrash,
+  DriveCard,
+} from "@/lib/driveFile";
 
 export function useDriveSync() {
   const { user, setSyncStatus, setSyncError } = useAuthStore();
-  const { cards, customMerchants, setCards, markCardSynced, isInitialized, finishInitialization } = useCardStore();
-  const sheetIdRef = useRef<string | null>(null);
-  const isSyncSuccessRef = useRef(false);
-  const lastProcessedCardsRef = useRef<string>("");
+  const { setCards, markCardSynced, isInitialized, finishInitialization, addCustomMerchant } = useCardStore();
+  const fileIdRef = useRef<string | null>(null);
 
-  // 1. 初始化與掃描大掃除
+  // 寫入鎖：防止並發寫入造成資料競爭
+  const writeInProgress = useRef(false);
+  // 等待寫入的卡片隊列
+  const pendingCards = useRef<DriveCard[]>([]);
+
+  // ─── 核心寫入器（序列化，防競爭）────────────────────────────────
+  const flushPending = useCallback(async () => {
+    if (writeInProgress.current || pendingCards.current.length === 0) return;
+    if (!user?.driveToken || !fileIdRef.current) return;
+
+    writeInProgress.current = true;
+    const cardsToSync = [...pendingCards.current];
+    pendingCards.current = [];
+
+    try {
+      setSyncStatus(true, useAuthStore.getState().lastSync);
+      
+      // 讀取一次 → 批量更新記憶體 → 寫入一次
+      const db = await readDriveDB(user.driveToken, fileIdRef.current);
+
+      for (const card of cardsToSync) {
+        // 移除前端專用欄位，只存純資料
+        const { isSynced: _, ...cardData } = card as any;
+        const idx = db.cards.findIndex(c => c.id === cardData.id);
+        if (idx !== -1) {
+          db.cards[idx] = cardData;
+        } else {
+          db.cards.push(cardData);
+        }
+      }
+
+      await writeDriveDB(user.driveToken, fileIdRef.current, db);
+
+      // 標記這批卡片已同步
+      for (const card of cardsToSync) {
+        markCardSynced(card.id, true);
+      }
+
+      setSyncStatus(false, Date.now());
+    } catch (e) {
+      console.error("[Drive Sync] Flush failed:", e);
+      // 寫入失敗：把這批卡片塞回隊列等待重試
+      pendingCards.current = [...cardsToSync, ...pendingCards.current];
+      for (const card of cardsToSync) {
+        markCardSynced(card.id, false);
+      }
+      setSyncError(true);
+    } finally {
+      writeInProgress.current = false;
+
+      // 若在寫入期間又有新的待處理卡片，繼續 flush
+      if (pendingCards.current.length > 0) {
+        flushPending();
+      }
+    }
+  }, [user?.driveToken, markCardSynced, setSyncStatus, setSyncError]);
+
+  // ─── 1. 初始化：找到或建立 Drive JSON 檔案，載入資料 ────────────
   useEffect(() => {
     if (!user?.driveToken) return;
 
-    const initSheets = async () => {
+    const initDrive = async () => {
       try {
         setSyncStatus(true, null);
         setSyncError(false);
-        
-        // 取得或建立試算表 ID
-        const spreadsheetId = await getOrCreateDatabaseSheet(user.driveToken!);
-        sheetIdRef.current = spreadsheetId;
-        
-        // 執行 15 天垃圾桶大掃除
-        const cleanedCards = await cleanupTrashInSheet(user.driveToken!, spreadsheetId);
-        
-        // 抓取全量卡片
-        const remoteCards = cleanedCards || await fetchCardsFromSheet(user.driveToken!, spreadsheetId);
-        
-        const localCards = useCardStore.getState().cards;
 
-        // 資料整合與同步狀態初始化
-        if (remoteCards.length === 0 && localCards.length > 0) {
-           // 本地遷移
-        } else if (remoteCards.length > 0) {
-           // 標記雲端抓下來的都已同步
-           const syncedRemote = remoteCards.map(c => ({ ...c, isSynced: true }));
-           setCards(syncedRemote as any);
+        const fileId = await getOrCreateDriveFile(user.driveToken!);
+        fileIdRef.current = fileId;
+
+        const db = await readDriveDB(user.driveToken!, fileId);
+
+        // 垃圾桶大掃除（15 天）
+        const { db: cleanedDb, changed } = cleanupTrash(db);
+
+        if (cleanedDb.cards.length > 0) {
+          // 補上前端需要的 name 欄位並標記已同步
+          const syncedCards = cleanedDb.cards.map(c => ({
+            ...c,
+            name: c.merchant === "7-11" ? "7-11 商品卡" : `${c.merchant} 禮物卡`,
+            isSynced: true,
+          }));
+          setCards(syncedCards as any);
         }
-        
-        isSyncSuccessRef.current = true;
+
+        // 若清理了過期卡片，回寫雲端
+        if (changed) {
+          await writeDriveDB(user.driveToken!, fileId, cleanedDb);
+        }
+
         setSyncStatus(false, Date.now());
-        finishInitialization();
       } catch (error: any) {
-        console.error("Sheets Init Error:", error);
+        console.error("[Drive Init] Error:", error);
         setSyncStatus(false, null);
         if (error.message?.includes("401")) setSyncError(true);
+      } finally {
+        // 無論如何都完成初始化，讓本地快取可用
+        finishInitialization();
       }
     };
 
-    initSheets();
+    initDrive();
   }, [user?.driveToken, setCards, setSyncStatus, setSyncError, finishInitialization]);
 
-  // 2. v1.11.0: 背景補傳隊列 (Background Retry Queue)
+  // ─── 2. 背景補傳隊列：每 30 秒掃描未同步卡片 ───────────────────
   useEffect(() => {
-    if (!user?.driveToken || !isInitialized || !sheetIdRef.current) return;
+    if (!user?.driveToken || !isInitialized) return;
 
-    const processQueue = async () => {
-      const unsyncedCards = cards.filter(c => !c.isSynced);
+    const processQueue = () => {
+      const { cards } = useCardStore.getState();
+      const unsyncedCards = cards.filter(c => !c.isSynced) as DriveCard[];
       if (unsyncedCards.length === 0) return;
 
-      console.log(`[Sync] Found ${unsyncedCards.length} unsynced cards. Retrying...`);
-      
-      for (const card of unsyncedCards) {
-        try {
-          await syncCardToSheet(user.driveToken!, sheetIdRef.current!, card as any);
-          markCardSynced(card.id, true);
-        } catch (e) {
-          console.error(`[Sync] Failed to sync card ${card.id}`, e);
-          setSyncError(true);
-        }
-      }
+      console.log(`[Drive Queue] Found ${unsyncedCards.length} unsynced cards.`);
+      // 加入隊列並觸發 flush
+      pendingCards.current.push(...unsyncedCards);
+      flushPending();
     };
 
-    const timer = setInterval(processQueue, 30000); // 每 30 秒自動檢查一次
+    const timer = setInterval(processQueue, 30000);
+    processQueue(); // 啟動時立即執行一次
     return () => clearInterval(timer);
-  }, [cards, user?.driveToken, isInitialized, sheetIdRef.current, markCardSynced, setSyncError]);
+  }, [user?.driveToken, isInitialized, flushPending]);
 
-  return {
-    syncImmediately: async (card: any) => {
-      if (!user?.driveToken || !sheetIdRef.current) return;
-      try {
-        setSyncStatus(true, useAuthStore.getState().lastSync);
-        await syncCardToSheet(user.driveToken, sheetIdRef.current, card);
-        markCardSynced(card.id, true);
-        setSyncStatus(false, Date.now());
-      } catch (e) {
-        setSyncError(true);
-        markCardSynced(card.id, false);
-      }
+  // ─── 3. 即時同步（非阻塞，加入隊列後立即嘗試 flush）────────────
+  const syncImmediately = useCallback(async (card: any) => {
+    if (!user?.driveToken || !fileIdRef.current) {
+      // 沒有 token 或檔案 ID，等背景隊列處理
+      return;
     }
-  };
+    pendingCards.current.push(card);
+    flushPending();
+  }, [user?.driveToken, flushPending]);
+
+  return { syncImmediately };
 }

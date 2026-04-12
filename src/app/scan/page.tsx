@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useScanner } from "@/hooks/useScanner";
 import ScannerOverlay from "@/components/ScannerOverlay";
@@ -22,7 +22,7 @@ export default function ScanPage() {
     skipSecondary 
   } = useScanner("reader-video");
   
-  const { addCard, customMerchants } = useCardStore();
+  const { addCard, customMerchants, cards } = useCardStore();
 
   const [isReadyToScan, setIsReadyToScan] = useState(false);
   const [merchant, setMerchant] = useState("7-11");
@@ -81,12 +81,21 @@ export default function ScanPage() {
   }, [isReadyToScan]);
 
   const { syncImmediately } = useDriveSync();
-  const [sessionCards, setSessionCards] = useState<any[]>([]);
+  const [sessionStartTime] = useState(Date.now());
   const lastScannedId = useRef<string | null>(null);
+
+  const sessionCards = useMemo(() => {
+    return cards
+      .filter(c => c.createdAt >= sessionStartTime && !c.deletedAt)
+      .sort((a, b) => b.createdAt - a.createdAt);
+  }, [cards, sessionStartTime]);
 
   // v1.11.0 自動存檔與 Session 追蹤
   useEffect(() => {
-    if (scanState === "success") {
+    if (scanState === "success" || scanState === "cooldown") {
+      // 必須有有效的卡號才執行
+      if (!data.primary) return;
+      
       const rawMerchant = isCustomMode && !merchant.trim() ? "未命名商家" : merchant;
       const cleanMerchant = rawMerchant.trim().replace(/[<>]/g, "").substring(0, 20);
 
@@ -117,7 +126,6 @@ export default function ScanPage() {
 
       const added = addCard(newCard);
       if (added) {
-        setSessionCards(prev => [newCard, ...prev]);
         if (syncImmediately) syncImmediately(newCard);
       }
     } else if (scanState === "scanning-a" || scanState === "idle") {

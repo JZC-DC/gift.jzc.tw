@@ -111,7 +111,7 @@ export function useScanner(elementId: string) {
       dataRef.current = { primary: foundPrimary, secondary: foundSecondary };
       setData({ primary: foundPrimary, secondary: foundSecondary });
       setScanStateSync("success");
-      startCooldown();
+      setTimeout(startCooldown, 50); // 給 React 一點時間處理 Success 狀態
       return;
     }
 
@@ -128,7 +128,7 @@ export function useScanner(elementId: string) {
 
         if (!currentIsDualMode) {
           setScanStateSync("success");
-          startCooldown();
+          setTimeout(startCooldown, 50);
         } else {
           setScanStateSync("scanning-b");
           setTimeout(() => { if (isMounted.current) isProcessing.current = false; }, 1500);
@@ -140,7 +140,7 @@ export function useScanner(elementId: string) {
       currentData.secondary = text;
       setData({ ...currentData });
       setScanStateSync("success");
-      startCooldown();
+      setTimeout(startCooldown, 50);
     }
   // ✅ 依賴陣列不含任何 state，只有穩定的函數引用
   }, [setScanStateSync, startCooldown]);
@@ -219,7 +219,7 @@ export function useScanner(elementId: string) {
     if (dataRef.current.primary) {
       isProcessing.current = true;
       setScanStateSync("success");
-      startCooldown();
+      setTimeout(startCooldown, 50); // 與 handleDetected 保持一致
     }
   }, [setScanStateSync, startCooldown]);
 

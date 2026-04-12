@@ -45,7 +45,7 @@ export default function Home() {
           <div className="w-20 h-20 rounded-[1.5rem] flex items-center justify-center mb-8 shadow-2xl relative overflow-hidden bg-white border border-slate-100 p-2">
              {/* eslint-disable-next-line @next/next/no-img-element */}
              <img 
-               src="/logo.png" 
+               src="/Logo.png" 
                alt="SGCM Logo" 
                className="w-full h-full object-cover rounded-xl"
              />
