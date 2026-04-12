@@ -1,6 +1,5 @@
 "use client";
 
-import Quagga from "@ericblade/quagga2";
 import { useState, useCallback, useRef, useEffect } from "react";
 
 export type ScanState = "idle" | "scanning-a" | "scanning-b" | "success" | "error" | "duplicate";
@@ -30,6 +29,7 @@ export function useScanner(elementId: string) {
   const stopScanning = useCallback(async () => {
     isProcessing.current = false;
     try {
+      const Quagga = (await import("@ericblade/quagga2")).default;
       await Quagga.stop();
       Quagga.offDetected();
       const container = document.getElementById(elementId);
@@ -114,6 +114,8 @@ export function useScanner(elementId: string) {
         setData({ primary: null, secondary: null });
 
         // v1.9.0 導入 Quagga2 技術：橫向極速解碼
+        const Quagga = (await import("@ericblade/quagga2")).default;
+        
         Quagga.init({
           inputStream: {
             name: "LiveStream",
@@ -147,8 +149,11 @@ export function useScanner(elementId: string) {
             return;
           }
           if (isMounted.current) {
-            Quagga.start();
-            Quagga.onDetected(handleDetected);
+            import("@ericblade/quagga2").then((M) => {
+              const Q = M.default;
+              Q.start();
+              Q.onDetected(handleDetected);
+            });
           }
         });
 
