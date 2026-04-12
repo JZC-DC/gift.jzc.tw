@@ -78,8 +78,8 @@ export function useScanner(elementId: string) {
         await html5Qrcode.start(
           { facingMode: "environment" }, 
           {
-            fps: 30, // 降低 FPS 以換取手機瀏覽器上的高度穩定性與省電
-            qrbox: { width: 320, height: 160 },
+            fps: 40,
+            qrbox: { width: 360, height: 100 },
             aspectRatio: 1.77777778,
             disableFlip: true,
             rememberLastUsedCamera: true,

@@ -50,8 +50,9 @@ export default function Home() {
                className="w-full h-full object-cover rounded-xl"
              />
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 relative">
             智慧商品卡管家
+            <span className="absolute -top-1 -right-12 text-[10px] text-slate-300 font-bold tracking-normal italic">v1.8.0</span>
           </h1>
           <p className="text-sm text-slate-400 mt-3 font-bold uppercase tracking-widest">
             Smart Gift Card Manager
