@@ -27,7 +27,10 @@ export async function getOrCreateDatabaseSheet(token: string): Promise<string> {
     { headers: { Authorization: `Bearer ${token}` } }
   );
   
-  if (!searchRes.ok) throw new Error("Failed to search Drive");
+  if (!searchRes.ok) {
+    const errorData = await searchRes.json().catch(() => ({}));
+    throw new Error(`Failed to search Drive: ${searchRes.status} ${JSON.stringify(errorData)}`);
+  }
   const searchData = await searchRes.json();
   
   if (searchData.files && searchData.files.length > 0) {
@@ -49,7 +52,10 @@ export async function getOrCreateDatabaseSheet(token: string): Promise<string> {
     }
   );
 
-  if (!createRes.ok) throw new Error("Failed to create Spreadsheet");
+  if (!createRes.ok) {
+    const errorData = await createRes.json().catch(() => ({}));
+    throw new Error(`Failed to create Spreadsheet: ${createRes.status} ${JSON.stringify(errorData)}`);
+  }
   const sheet = await createRes.json();
   const spreadsheetId = sheet.spreadsheetId;
 
@@ -105,7 +111,10 @@ export async function syncCardToSheet(token: string, spreadsheetId: string, card
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A:A`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  if (!res.ok) throw new Error("Sync failed: Cannot read Rows");
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(`Sync failed (Read Rows): ${res.status} ${JSON.stringify(errorData)}`);
+  }
   const data = await res.json();
   const rows = data.values || [];
   

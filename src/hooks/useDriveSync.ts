@@ -51,9 +51,15 @@ export function useDriveSync() {
         isSyncSuccessRef.current = true;
         setSyncStatus(false, Date.now());
         finishInitialization();
-      } catch (error) {
+      } catch (error: any) {
         console.error("Sheets Init Error:", error);
         setSyncStatus(false, null);
+        
+        // 如果錯誤訊息包含 401，代表 Token 過期，這是一個確定的 Sync Error
+        if (error.message?.includes("401")) {
+          console.warn("Sync Error: Drive Token Expired. User needs to re-login.");
+        }
+        
         setSyncError(true);
       }
     };
