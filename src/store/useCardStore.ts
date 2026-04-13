@@ -60,13 +60,13 @@ export const useCardStore = create<CardStore>()(
 
       moveToTrash: (id) => {
         set((state) => ({
-          cards: state.cards.map(c => c.id === id ? { ...c, deletedAt: Date.now() } : c)
+          cards: state.cards.map(c => c.id === id ? { ...c, deletedAt: Date.now(), isSynced: false } : c)
         }));
       },
 
       restoreFromTrash: (id) => {
         set((state) => ({
-          cards: state.cards.map(c => c.id === id ? { ...c, deletedAt: null } : c)
+          cards: state.cards.map(c => c.id === id ? { ...c, deletedAt: null, isSynced: false } : c)
         }));
       },
 

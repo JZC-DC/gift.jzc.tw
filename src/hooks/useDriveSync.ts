@@ -88,15 +88,29 @@ export function useDriveSync() {
         // 垃圾桶大掃除（15 天）
         const { db: cleanedDb, changed } = cleanupTrash(db);
 
-        if (cleanedDb.cards.length > 0) {
-          // 補上前端需要的 name 欄位並標記已同步
-          const syncedCards = cleanedDb.cards.map(c => ({
+        // --- 優化邏輯：合併本地未同步的變動，避免 refresh 時丟失 ---
+        const { cards: localCards } = useCardStore.getState();
+        const localUnsynced = localCards.filter(c => !c.isSynced);
+
+        // 建立 ID 對應，方便合併
+        const cardMap = new Map();
+
+        // 1. 先放雲端資料（視為已同步）
+        cleanedDb.cards.forEach(c => {
+          cardMap.set(c.id, {
             ...c,
             name: c.merchant === "7-11" ? "7-11 商品卡" : `${c.merchant} 禮物卡`,
             isSynced: true,
-          }));
-          setCards(syncedCards as any);
-        }
+          });
+        });
+
+        // 2. 用本地未同步資料覆寫（代表更鮮鮮的本地變動，如：剛剛扔進垃圾桶）
+        localUnsynced.forEach(c => {
+          cardMap.set(c.id, c);
+        });
+
+        const mergedCards = Array.from(cardMap.values());
+        setCards(mergedCards as any);
 
         // 同步 customMerchants（跨裝置支援）
         if (cleanedDb.customMerchants?.length > 0) {
