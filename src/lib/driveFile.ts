@@ -34,38 +34,25 @@ const emptyDB = (): DriveDB => ({
 });
 
 /**
- * 搜尋指定空間的檔案 ID
+ * 在根目錄搜尋或建立資料檔案
  */
-export async function findDriveFile(token: string, space: "drive" | "appDataFolder"): Promise<string | null> {
+export async function getOrCreateDriveFile(token: string, uid: string): Promise<string> {
+  // 1. 搜尋現有檔案
   const q = `name='${VISIBLE_FILENAME}' and trashed=false`;
   const res = await fetch(
-    `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=${space}&t=${Date.now()}`,
-    { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
+    `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive&t=${Date.now()}`,
+    { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" } // 強制快取破除
   );
-  if (!res.ok) return null;
+  if (!res.ok) throw new Error("Search failed");
   const data = await res.json();
-  return data.files?.[0]?.id || null;
-}
 
-/**
- * 在根目錄搜尋或建立資料檔案 (雙軌支援版)
- */
-export async function getOrCreateDriveFile(
-  token: string, 
-  uid: string, 
-  space: "drive" | "appDataFolder" = "drive"
-): Promise<string> {
-  const existingId = await findDriveFile(token, space);
-  if (existingId) return existingId;
+  if (data.files && data.files.length > 0) {
+    return data.files[0].id;
+  }
 
-  // 建立全新加密檔案
+  // 2. 建立新檔案
   const encrypted = await encryptDB(emptyDB(), uid);
-  const metadata = { 
-    name: VISIBLE_FILENAME, 
-    mimeType: "text/plain", 
-    parents: [space === "appDataFolder" ? "appDataFolder" : "root"] 
-  };
-  
+  const metadata = { name: VISIBLE_FILENAME, mimeType: "text/plain" };
   const form = new FormData();
   form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
   form.append("file", new Blob([encrypted], { type: "text/plain" }));
@@ -75,7 +62,7 @@ export async function getOrCreateDriveFile(
     headers: { Authorization: `Bearer ${token}` },
     body: form,
   });
-  if (!createRes.ok) throw new Error(`Create failed in ${space}: ${createRes.status}`);
+  if (!createRes.ok) throw new Error("Create failed");
   const created = await createRes.json();
   return created.id;
 }
@@ -88,6 +75,7 @@ export async function readDriveDB(
   fileId: string,
   uid: string
 ): Promise<{ db: DriveDB }> {
+  // 增加快取破除器，確保讀到最新
   const res = await fetch(`${DRIVE_API}/files/${fileId}?alt=media&t=${Date.now()}`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
@@ -95,6 +83,8 @@ export async function readDriveDB(
   if (!res.ok) throw new Error(`Read failed: ${res.status}`);
 
   const ciphertext = await res.text();
+
+  // 若資料是明文（舊版相容），直接解析；否則解密
   if (ciphertext.trimStart().startsWith("{")) {
     return { db: JSON.parse(ciphertext) as DriveDB };
   }

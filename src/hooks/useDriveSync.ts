@@ -1,10 +1,10 @@
 /**
- * useDriveSync — v2.13.0 雙軌閃電保險版 (Lightning Dual-Insurance)
+ * useDriveSync — v2.12.0 極速閃電版 (Lightning Edition)
  *
  * 設計原則：
- * 1. 雙軸備援：資料同時存在於「根目錄 (Visible)」與「隱藏空間 (Hidden)」。
- * 2. 毫秒反應：優先完成根目錄寫入並轉為綠燈，備援寫入由背景非阻塞完成。
- * 3. 自動自癒：啟動時對齊雙方資料，確保資料庫永遠是最新狀態。
+ * 1. 速度優先 (Speed First)：預設執行「盲目寫入 (Blind Write)」，將通訊次數降為 1。
+ * 2. 全域佇列 (Global Singleton)：使用 Zustand 的 syncQueue 管理，徹底消除競爭。
+ * 3. 智能恢復：僅在偵測到衝突 (412) 時自動降級為「讀取-合併-重寫」。
  */
 
 import { useEffect, useRef, useCallback } from "react";
@@ -16,7 +16,6 @@ import {
   writeDriveDB,
   cleanupTrash,
   migrateOldVisibleFile,
-  findDriveFile,
 } from "@/lib/driveFile";
 
 const MAX_BACKOFF_MS = 60_000;
@@ -31,55 +30,70 @@ export function useDriveSync() {
     finishInitialization,
     addCustomMerchant,
     syncQueue,
+    isGlobalSyncing,
     setGlobalSyncing,
     removeFromQueue,
   } = useCardStore();
 
-  const visibleFileIdRef = useRef<string | null>(null);
-  const hiddenFileIdRef  = useRef<string | null>(null);
-  const workerBusyRef    = useRef(false);
-  const retryCountRef    = useRef(0);
-  const retryTimerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fileIdRef      = useRef<string | null>(null);
+  const retryCountRef  = useRef(0);
+  const retryTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const workerBusyRef  = useRef(false);
 
-  // ─── 雙軌閃電發射器 ─────────────────────────────────────
+  // ─── 閃電同步核心 ─────────────────────────────────────
   const processQueue = useCallback(async () => {
     if (workerBusyRef.current || syncQueue.length === 0) return;
-    if (!visibleFileIdRef.current || !user?.driveToken || !user?.uid) return;
+    if (!fileIdRef.current || !user?.driveToken || !user?.uid) return;
 
     workerBusyRef.current = true;
     setGlobalSyncing(true);
     setSyncStatus(true, useAuthStore.getState().lastSync);
 
     const batchIds = [...syncQueue];
-    const currentCards = useCardStore.getState().cards;
-    const dbToSync = {
-      version: 1,
-      lastModified: Date.now(),
-      cards: currentCards.map(({ isSynced: _, ...c }) => c) as any,
-      customMerchants: useCardStore.getState().customMerchants,
-    };
+    const batchCards = storeCards.filter(c => batchIds.includes(c.id));
 
     try {
-      // ⚡ 第一軌：顯性發射 (Visible) - 追求速度
-      await writeDriveDB(user.driveToken, visibleFileIdRef.current, dbToSync, user.uid);
-      
-      // 🎉 前景收工：立即更新 UI 指示燈 (轉為綠燈)
+      // ⚡ 第 1 步：極速模式 - 直接嘗試寫入 (Blind Write)
+      // 我們相信本地狀態是完整的。
+      const currentDB = {
+        version: 1,
+        lastModified: Date.now(),
+        cards: storeCards.map(({ isSynced: _, ...c }) => c) as any,
+        customMerchants: useCardStore.getState().customMerchants,
+      };
+
+      try {
+        await writeDriveDB(user.driveToken, fileIdRef.current, currentDB, user.uid);
+      } catch (writeErr: any) {
+        // 🛡️ 如果發生衝突 (412) 或特殊錯誤，降級為安全模式
+        if (writeErr.message?.includes("412") || writeErr.message?.includes("404")) {
+          console.warn("[Sync] 寫入衝突，啟動恢復模式...");
+          const { db: remoteDb } = await readDriveDB(user.driveToken, fileIdRef.current, user.uid);
+          
+          // 合併衝突：以本地變更覆蓋雲端同 ID 卡片
+          for (const localCard of batchCards) {
+             const { isSynced: _, ...cardData } = localCard as any;
+             const idx = remoteDb.cards.findIndex(c => c.id === cardData.id);
+             if (idx !== -1) remoteDb.cards[idx] = cardData;
+             else remoteDb.cards.push(cardData);
+          }
+          await writeDriveDB(user.driveToken, fileIdRef.current, remoteDb, user.uid);
+        } else {
+          throw writeErr;
+        }
+      }
+
+      // 🎉 成功：清理佇列與標記
       removeFromQueue(batchIds);
       batchIds.forEach(id => markCardSynced(id, true));
+      
       setSyncStatus(false, Date.now());
       setSyncError(false);
       retryCountRef.current = 0;
-
-      // 🛡️ 第二軌：背景備援 (Hidden) - 悄悄進行
-      if (hiddenFileIdRef.current) {
-        writeDriveDB(user.driveToken, hiddenFileIdRef.current, dbToSync, user.uid)
-          .catch(e => console.warn("[Sync] 背景備援失敗 (不影響主流程):", e));
-      }
-
-      console.log(`[Sync] 🛡️ 雙軌同步完成 (${batchIds.length} 張)`);
+      console.log(`[Sync] ⚡ 閃電同步完成 (${batchIds.length} 張)`);
 
     } catch (e: any) {
-      console.error("[Sync] ❌ 寫入失敗:", e.message || e);
+      console.error("[Sync] ❌ 閃電同步失敗:", e.message || e);
       setSyncStatus(false, useAuthStore.getState().lastSync);
       setSyncError(true);
 
@@ -94,13 +108,14 @@ export function useDriveSync() {
     } finally {
       workerBusyRef.current = false;
       setGlobalSyncing(false);
+      // 若處理期間又有新東西進來，立即再跑一輪
       if (useCardStore.getState().syncQueue.length > 0) {
         setTimeout(() => processQueue(), 100);
       }
     }
-  }, [user?.driveToken, user?.uid, syncQueue, setGlobalSyncing, removeFromQueue, markCardSynced, setSyncStatus, setSyncError]);
+  }, [user?.driveToken, user?.uid, syncQueue, storeCards, setGlobalSyncing, removeFromQueue, markCardSynced, setSyncStatus, setSyncError]);
 
-  // ─── 雙軌初始化與資料自癒 ───────────────────────────────
+  // ─── 初始化與對齊 ───────────────────────────────
   useEffect(() => {
     if (!user?.driveToken) return;
 
@@ -109,36 +124,14 @@ export function useDriveSync() {
       try {
         await (useCardStore.persist as any).rehydrate();
         await migrateOldVisibleFile(user.driveToken!);
+        const fileId = await getOrCreateDriveFile(user.driveToken!, user.uid);
+        fileIdRef.current = fileId;
 
-        // 同時取得兩方的檔案 ID
-        const [vId, hId] = await Promise.all([
-          getOrCreateDriveFile(user.driveToken!, user.uid, "drive"),
-          getOrCreateDriveFile(user.driveToken!, user.uid, "appDataFolder"),
-        ]);
-        visibleFileIdRef.current = vId;
-        hiddenFileIdRef.current  = hId;
+        // 初始化時才執行昂貴的 Read-Merge
+        const { db } = await readDriveDB(user.driveToken!, fileId, user.uid);
+        const { db: cleanedDb, changed } = cleanupTrash(db);
 
-        // 讀取兩方的資料庫並進行校對
-        const [vRes, hRes] = await Promise.allSettled([
-          readDriveDB(user.driveToken!, vId, user.uid),
-          readDriveDB(user.driveToken!, hId, user.uid),
-        ]);
-
-        let finalDb = null;
-        const vDb = vRes.status === "fulfilled" ? vRes.value.db : null;
-        const hDb = hRes.status === "fulfilled" ? hRes.value.db : null;
-
-        if (vDb && hDb) {
-           finalDb = vDb.lastModified >= hDb.lastModified ? vDb : hDb;
-        } else {
-           finalDb = vDb || hDb;
-        }
-
-        if (!finalDb) throw new Error("兩方資料庫皆無法讀取");
-
-        // 垃圾桶清理與還原
-        const { db: cleanedDb, changed } = cleanupTrash(finalDb);
-        const { cards: localCards } = useCardStore.getState();
+        const localCards = useCardStore.getState().cards;
         const cardMap = new Map<string, any>();
         cleanedDb.cards.forEach((c) => cardMap.set(c.id, { ...c, isSynced: true }));
         localCards.filter((c) => !c.isSynced).forEach((c) => cardMap.set(c.id, c));
@@ -148,20 +141,14 @@ export function useDriveSync() {
           cleanedDb.customMerchants.forEach((m) => addCustomMerchant(m));
         }
 
-        // 🔄 自癒：如果有一方資料較舊或缺失，自動同步雙方
-        const needHeal = changed || !vDb || !hDb || (vDb.lastModified !== hDb.lastModified);
-        if (needHeal) {
-          console.log("[Sync] 正在執行雙軌資料自癒...");
-          const healPromises = [];
-          if (vId) healPromises.push(writeDriveDB(user.driveToken!, vId, cleanedDb, user.uid));
-          if (hId) healPromises.push(writeDriveDB(user.driveToken!, hId, cleanedDb, user.uid));
-          await Promise.all(healPromises);
+        if (changed) {
+          await writeDriveDB(user.driveToken!, fileId, cleanedDb, user.uid);
         }
 
         setSyncStatus(false, Date.now());
-        console.log("[Sync] 🏁 雙軌初始化完成。");
+        console.log("[Sync] 🏁 初始化校對完成。");
       } catch (err: any) {
-        console.error("[Sync] ⚠️ 雙軌初始化失敗:", err.message || err);
+        console.error("[Sync] ⚠️ 初始化校對失敗:", err.message || err);
         setSyncStatus(false, null);
         setSyncError(true);
       } finally {
@@ -174,7 +161,7 @@ export function useDriveSync() {
 
   // ─── 監聽佇列變動自動啟動 ──────────────────────────
   useEffect(() => {
-    if (isInitialized && visibleFileIdRef.current && syncQueue.length > 0) {
+    if (isInitialized && fileIdRef.current && syncQueue.length > 0) {
       processQueue();
     }
   }, [syncQueue, isInitialized, processQueue]);
