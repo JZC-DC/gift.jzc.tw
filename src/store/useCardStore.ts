@@ -3,15 +3,18 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { encryptText, decryptText } from "@/lib/crypto";
 import { useAuthStore } from "./useAuthStore";
 
+export type CardStatus = "Active" | "Trashed" | "Empty";
+
 export interface Card {
   id: string;
   merchant: string;
   name: string;
-  barcode: string; // 第一組條碼
-  secondaryBarcode: string | null; // 第二組條碼 (密碼)
+  barcode: string;
+  secondaryBarcode: string | null;
   amount: number;
   createdAt: number;
   deletedAt: number | null;
+  status: CardStatus; // 新增狀態標籤
   isSynced?: boolean;
 }
 
@@ -56,19 +59,23 @@ export const useCardStore = create<CardStore>()(
           return false;
         }
 
-        set((state) => ({ cards: [...state.cards, newCard] }));
+        set((state) => ({ cards: [...state.cards, { ...newCard, status: "Active" }] }));
         return true;
       },
 
       moveToTrash: (id) => {
         set((state) => ({
-          cards: state.cards.map(c => c.id === id ? { ...c, deletedAt: Date.now(), isSynced: false } : c)
+          cards: state.cards.map(c => 
+            c.id === id ? { ...c, deletedAt: Date.now(), status: "Trashed", isSynced: false } : c
+          )
         }));
       },
 
       restoreFromTrash: (id) => {
         set((state) => ({
-          cards: state.cards.map(c => c.id === id ? { ...c, deletedAt: null, isSynced: false } : c)
+          cards: state.cards.map(c => 
+            c.id === id ? { ...c, deletedAt: null, status: "Active", isSynced: false } : c
+          )
         }));
       },
 
@@ -100,17 +107,9 @@ export const useCardStore = create<CardStore>()(
         getItem: async (name) => {
           const value = localStorage.getItem(name);
           if (!value) return null;
-          
-          // 如果內容不含點號，代表是舊版的明文 JSON
           if (!value.includes(".")) return value;
-
-          // 嘗試取得目前的 UID 進行解密
           const uid = useAuthStore.getState().user?.uid;
-          if (!uid) {
-            console.warn("[Storage] 未登入，暫時無法解密本地資料。");
-            return null; // 回傳 null 讓 Zustand 保持初始狀態 (隱藏卡片)
-          }
-
+          if (!uid) return null;
           try {
             return await decryptText(value, uid);
           } catch (e) {
@@ -120,8 +119,7 @@ export const useCardStore = create<CardStore>()(
         },
         setItem: async (name, value) => {
           const uid = useAuthStore.getState().user?.uid;
-          if (!uid) return; // 未登入不儲存
-          
+          if (!uid) return;
           try {
             const encrypted = await encryptText(value, uid);
             localStorage.setItem(name, encrypted);

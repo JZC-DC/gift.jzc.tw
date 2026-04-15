@@ -5,6 +5,8 @@ const OLD_VISIBLE_FILENAME = "zc-card 請勿刪除·此為禮物卡檔案.json";
 const DRIVE_API = "https://www.googleapis.com/drive/v3";
 const UPLOAD_API = "https://www.googleapis.com/upload/drive/v3";
 
+export type DriveCardStatus = "Active" | "Trashed" | "Empty";
+
 export interface DriveCard {
   id: string;
   merchant: string;
@@ -14,6 +16,7 @@ export interface DriveCard {
   amount: number;
   createdAt: number;
   deletedAt: number | null;
+  status: DriveCardStatus; // 同步狀態標籤
 }
 
 export interface DriveDB {
@@ -59,7 +62,7 @@ export async function migrateOldVisibleFile(token: string): Promise<void> {
 }
 
 /**
- * 在根目錄搜尋或建立資料檔案
+ * 在根目錄搜尋或建立資料檔案 (單軌穩定版)
  */
 export async function getOrCreateDriveFile(token: string, uid: string): Promise<string> {
   const q = `name='${VISIBLE_FILENAME}' and trashed=false`;
@@ -107,14 +110,13 @@ export async function readDriveDB(
 
   const ciphertext = await res.text();
   if (ciphertext.trimStart().startsWith("{")) {
-    // 舊版明文 JSON，向下相容
     return { db: JSON.parse(ciphertext) as DriveDB };
   }
   return { db: await decryptDB(ciphertext, uid) };
 }
 
 /**
- * 加密並寫入資料庫至 Drive（無 etag，永遠以讀後最新狀態覆寫）
+ * 加密並寫入資料庫至 Drive（無 etag 依賴，採穩定覆寫流程）
  */
 export async function writeDriveDB(
   token: string,
