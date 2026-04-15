@@ -18,9 +18,9 @@ export const metadata: Metadata = {
     title: "ZJ Card",
   },
   icons: {
-    icon: "/icons/icon-192x192.png",
-    apple: "/icons/apple-touch-icon.png",
-    shortcut: "/icons/icon-192x192.png",
+    icon: "/logo.png?v=2.4.4",
+    apple: "/logo.png?v=2.4.4",
+    shortcut: "/favicon.ico?v=2.4.4",
   },
   manifest: "/manifest.json",
   verification: {
