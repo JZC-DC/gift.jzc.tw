@@ -16,7 +16,7 @@ export interface DriveCard {
   amount: number;
   createdAt: number;
   deletedAt: number | null;
-  status: DriveCardStatus; // 同步狀態標籤
+  status: DriveCardStatus;
 }
 
 export interface DriveDB {
@@ -34,52 +34,38 @@ const emptyDB = (): DriveDB => ({
 });
 
 /**
- * 遷移舊的中文檔名至新格式
+ * 搜尋指定空間的檔案 ID
  */
-export async function migrateOldVisibleFile(token: string): Promise<void> {
-  try {
-    const q = `name='${OLD_VISIBLE_FILENAME}' and trashed=false`;
-    const res = await fetch(
-      `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive&t=${Date.now()}`,
-      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
-    );
-    if (!res.ok) return;
-    const data = await res.json();
-    if (data.files?.length > 0) {
-      const oldFileId = data.files[0].id;
-      await fetch(`${DRIVE_API}/files/${oldFileId}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name: VISIBLE_FILENAME }),
-      });
-    }
-  } catch {
-    // 遷移失敗不影響主流程
-  }
+export async function findDriveFile(token: string, space: "drive" | "appDataFolder"): Promise<string | null> {
+  const q = `name='${VISIBLE_FILENAME}' and trashed=false`;
+  const res = await fetch(
+    `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=${space}&t=${Date.now()}`,
+    { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
+  );
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data.files?.[0]?.id || null;
 }
 
 /**
- * 在根目錄搜尋或建立資料檔案 (單軌穩定版)
+ * 在根目錄搜尋或建立資料檔案 (雙軌支援版)
  */
-export async function getOrCreateDriveFile(token: string, uid: string): Promise<string> {
-  const q = `name='${VISIBLE_FILENAME}' and trashed=false`;
-  const searchRes = await fetch(
-    `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive&t=${Date.now()}`,
-    { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
-  );
-  if (!searchRes.ok) throw new Error(`Drive search failed: ${searchRes.status}`);
-
-  const searchData = await searchRes.json();
-  if (searchData.files?.length > 0) {
-    return searchData.files[0].id;
-  }
+export async function getOrCreateDriveFile(
+  token: string, 
+  uid: string, 
+  space: "drive" | "appDataFolder" = "drive"
+): Promise<string> {
+  const existingId = await findDriveFile(token, space);
+  if (existingId) return existingId;
 
   // 建立全新加密檔案
   const encrypted = await encryptDB(emptyDB(), uid);
-  const metadata = { name: VISIBLE_FILENAME, mimeType: "text/plain", parents: ["root"] };
+  const metadata = { 
+    name: VISIBLE_FILENAME, 
+    mimeType: "text/plain", 
+    parents: [space === "appDataFolder" ? "appDataFolder" : "root"] 
+  };
+  
   const form = new FormData();
   form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
   form.append("file", new Blob([encrypted], { type: "text/plain" }));
@@ -89,7 +75,7 @@ export async function getOrCreateDriveFile(token: string, uid: string): Promise<
     headers: { Authorization: `Bearer ${token}` },
     body: form,
   });
-  if (!createRes.ok) throw new Error(`Create failed: ${createRes.status}`);
+  if (!createRes.ok) throw new Error(`Create failed in ${space}: ${createRes.status}`);
   const created = await createRes.json();
   return created.id;
 }
@@ -116,7 +102,7 @@ export async function readDriveDB(
 }
 
 /**
- * 加密並寫入資料庫至 Drive（無 etag 依賴，採穩定覆寫流程）
+ * 加密並寫入資料庫至 Drive (單次 PATCH)
  */
 export async function writeDriveDB(
   token: string,
@@ -125,7 +111,6 @@ export async function writeDriveDB(
   uid: string
 ): Promise<void> {
   const encrypted = await encryptDB({ ...db, lastModified: Date.now() }, uid);
-
   const res = await fetch(`${UPLOAD_API}/files/${fileId}?uploadType=media`, {
     method: "PATCH",
     headers: {
@@ -134,15 +119,36 @@ export async function writeDriveDB(
     },
     body: encrypted,
   });
-
   if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    throw new Error(`Write failed: ${res.status} ${detail}`.trim());
+    throw new Error(`Write failed: ${res.status}`);
   }
 }
 
 /**
- * 垃圾桶大掃除：移除 15 天以上的軟刪除卡片
+ * 遷移舊的中文檔名至新格式
+ */
+export async function migrateOldVisibleFile(token: string): Promise<void> {
+  try {
+    const q = `name='${OLD_VISIBLE_FILENAME}' and trashed=false`;
+    const res = await fetch(
+      `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive&t=${Date.now()}`,
+      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.files?.length > 0) {
+      const oldFileId = data.files[0].id;
+      await fetch(`${DRIVE_API}/files/${oldFileId}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ name: VISIBLE_FILENAME }),
+      });
+    }
+  } catch {}
+}
+
+/**
+ * 垃圾桶大掃除
  */
 export function cleanupTrash(db: DriveDB): { db: DriveDB; changed: boolean } {
   const fifteenDaysAgo = Date.now() - 15 * 24 * 60 * 60 * 1000;
