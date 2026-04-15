@@ -36,7 +36,7 @@ export default function Dashboard() {
       <div className="absolute top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-[#34DA4F]/10 via-transparent to-transparent pointer-events-none" />
 
       {/* 頂部標題 - 縮小版且固定高度 */}
-      <header className="px-6 pt-6 pb-2 grow-0 flex justify-between items-center z-20 shrink-0">
+      <header className="px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-2 grow-0 flex justify-between items-center z-20 shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
              {/* eslint-disable-next-line @next/next/no-img-element */}

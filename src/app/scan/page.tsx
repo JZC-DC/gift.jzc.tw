@@ -147,7 +147,7 @@ export default function ScanPage() {
 
   if (!isReadyToScan) {
     return (
-      <div className="min-h-[100dvh] bg-slate-50 flex flex-col items-center justify-center p-6 text-slate-900 font-sans">
+      <div className="min-h-[100dvh] bg-slate-50 flex flex-col items-center justify-center px-6 pb-6 pt-[calc(1.5rem+env(safe-area-inset-top))] text-slate-900 font-sans">
          <div className="w-full max-w-sm flex flex-col gap-8 relative">
             <div className="absolute top-[-15%] left-[-15%] w-[50vw] h-[50vw] bg-[#34DA4F]/10 rounded-full blur-[80px] pointer-events-none" />
 

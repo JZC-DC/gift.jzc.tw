@@ -46,7 +46,6 @@ export async function getOrCreateDriveFile(
   token: string,
   uid: string
 ): Promise<string> {
-  // 只搜尋 appDataFolder 空間
   const q = `name='${DB_FILENAME}' and trashed=false`;
   const searchRes = await fetch(
     `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=appDataFolder`,
@@ -60,41 +59,7 @@ export async function getOrCreateDriveFile(
     return searchData.files[0].id;
   }
 
-  // --- 搬家邏輯 (Migration): 若隱藏空間找不到，去根目錄找找看有沒有舊檔案 ---
-  const qRoot = `name='${DB_FILENAME}' and trashed=false`;
-  const rootSearchRes = await fetch(
-    `${DRIVE_API}/files?q=${encodeURIComponent(qRoot)}&fields=files(id)&spaces=drive`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-
-  if (rootSearchRes.ok) {
-    const rootSearchData = await rootSearchRes.json();
-    if (rootSearchData.files?.length > 0) {
-      const oldFileId = rootSearchData.files[0].id;
-      console.log("[Drive Migration] 發現根目錄舊檔案，準備搬家至 appDataFolder...");
-
-      try {
-        // 1. 讀取舊檔案內容 (相容明文或加密)
-        const oldDB = await readDriveDB(token, oldFileId, uid);
-
-        // 2. 在 appDataFolder 建立新的加密檔案
-        const newFileId = await createNewDriveFile(token, uid, oldDB);
-
-        // 3. 將根目錄的舊檔案移至垃圾桶（避免重複搬家）
-        await fetch(`${DRIVE_API}/files/${oldFileId}`, {
-          method: "DELETE", // 或者使用 PATCH trashed=true
-          headers: { Authorization: `Bearer ${token}` }
-        }).catch(e => console.warn("[Drive Migration] 刪除舊檔案失敗 (非致命):", e));
-
-        console.log("[Drive Migration] 搬家成功！新 ID:", newFileId);
-        return newFileId;
-      } catch (error) {
-        console.error("[Drive Migration] 搬家失敗，將建立全新資料庫:", error);
-      }
-    }
-  }
-
-  // 找不到任何檔案，建立全新的 JSON 檔案
+  // 找不到任何隱藏檔案，直接在 appDataFolder 建立全新的 JSON 檔案
   return createNewDriveFile(token, uid, emptyDB());
 }
 

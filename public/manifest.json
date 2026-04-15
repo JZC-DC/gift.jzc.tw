@@ -1,7 +1,7 @@
 {
-  "name": "智慧商品卡管家",
-  "short_name": "智慧管家",
-  "description": "您的專屬智慧禮物卡管家",
+  "name": "ZJ Card - 奇蹟卡",
+  "short_name": "ZJ Card",
+  "description": "專屬於您的奇蹟卡管家",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F9FAFB",

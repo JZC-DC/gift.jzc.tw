@@ -1,5 +1,17 @@
 # 更新日誌 (Changelog)
 
+## [2.2.0] - 2026-04-15
+### 💎 體驗優化與權限極簡化
+#### 介面優化 (UX/UI)
+- **修復 iPhone Safe Area**：針對 PWA 模式實作 `safe-area-inset-top` 保護，解決頂部標題與系統時間/電池欄位重疊之問題。
+- **PWA 正式更名**：更新 `manifest.json` 配置，將 PWA 名稱從「智慧管家」全面統一為 **ZJ Card**。
+
+#### 權限與資安 (Privacy & Security)
+- **權限極簡化**：移除 Google Drive 的 `spreadsheets` 與 `drive.file` 權限，目前僅要求最小必要權限 `drive.appdata`。
+- **代碼精簡**：移除 v1 搬遷遷移邏輯，精簡 Drive 同步核心，提升系統穩定性。
+
+---
+
 ## [2.1.0] - 2026-04-15
 ### 🌟 ZJ Card 品牌化與安全升級
 
