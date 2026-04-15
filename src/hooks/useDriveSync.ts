@@ -32,7 +32,7 @@ export function useDriveSync() {
       setSyncStatus(true, useAuthStore.getState().lastSync);
       
       // 讀取一次 → 批量更新記憶體 → 寫入一次
-      const db = await readDriveDB(user.driveToken, fileIdRef.current);
+      const db = await readDriveDB(user.driveToken, fileIdRef.current, user.uid);
 
       for (const card of cardsToSync) {
         // 移除前端專用欄位，只存純資料
@@ -45,7 +45,7 @@ export function useDriveSync() {
         }
       }
 
-      await writeDriveDB(user.driveToken, fileIdRef.current, db);
+      await writeDriveDB(user.driveToken, fileIdRef.current, db, user.uid);
 
       // 標記這批卡片已同步
       for (const card of cardsToSync) {
@@ -80,10 +80,10 @@ export function useDriveSync() {
         setSyncStatus(true, null);
         setSyncError(false);
 
-        const fileId = await getOrCreateDriveFile(user.driveToken!);
+        const fileId = await getOrCreateDriveFile(user.driveToken!, user.uid);
         fileIdRef.current = fileId;
 
-        const db = await readDriveDB(user.driveToken!, fileId);
+        const db = await readDriveDB(user.driveToken!, fileId, user.uid);
 
         // 垃圾桶大掃除（15 天）
         const { db: cleanedDb, changed } = cleanupTrash(db);
@@ -121,7 +121,7 @@ export function useDriveSync() {
 
         // 若清理了過期卡片，回寫雲端
         if (changed) {
-          await writeDriveDB(user.driveToken!, fileId, cleanedDb);
+          await writeDriveDB(user.driveToken!, fileId, cleanedDb, user.uid);
         }
 
         setSyncStatus(false, Date.now());

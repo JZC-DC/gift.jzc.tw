@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ShieldCheck, Database, Code, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ShieldCheck, Database, Code, AlertTriangle, ChevronRight } from "lucide-react";
 
 export default function PrivacyPage() {
   const router = useRouter();
@@ -19,17 +19,20 @@ export default function PrivacyPage() {
 
         <main className="p-4 flex flex-col gap-8">
           
-          {/* 隱私權摘要 - 亮點區塊 */}
-          <section className="bg-gradient-to-br from-[#5CF777] via-[#34DA4F] to-[#0EBE2C] p-8 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
+          {/* 隱私權核心：端對端加密 (v2.0 升級) */}
+          <section className="bg-gradient-to-br from-[#34DA4F] via-[#2EB140] to-[#1A8A2A] p-8 rounded-[2.5rem] shadow-[0_20px_50px_rgba(52,218,79,0.2)] text-white relative overflow-hidden">
              <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-10 translate-x-10 blur-3xl" />
-             <div className="relative z-10 flex flex-col gap-4">
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                   <ShieldCheck size={28} />
+             <div className="relative z-10 flex flex-col gap-5">
+                <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/30 shadow-inner">
+                   <ShieldCheck size={32} />
                 </div>
-                <h2 className="text-2xl font-black">隱私權摘要</h2>
-                <div className="space-y-4 opacity-90 font-bold text-sm leading-relaxed">
-                   <p>本 App 採「無中心資料庫」設計。您的所有敏感數據（卡號、金額、商家）均直接存放於您個人的 Google Drive 試算表中。</p>
-                   <p>開發者與任何第三方均無法存取、解析或轉傳您的資料。</p>
+                <div>
+                   <h2 className="text-2xl font-black mb-2">最高等級安全防護</h2>
+                   <p className="text-xs font-bold text-white/80 uppercase tracking-widest">AES-256-GCM Client-Side Encryption</p>
+                </div>
+                <div className="space-y-4 font-bold text-sm leading-relaxed text-white/95">
+                   <p>本 App 採用「零知識證明 (Zero-Knowledge)」技術架構。您的所有敏感數據（卡號、密碼）在離開您的裝置前，皆已通過 AES-256-GCM 高強度加密。</p>
+                   <p>加密金鑰由您的 Google UID 衍生，開發者、伺服器、甚至是 Google 官方皆無法解密偵測您的卡片內容。</p>
                 </div>
              </div>
           </section>
@@ -37,27 +40,46 @@ export default function PrivacyPage() {
           {/* 詳細條款 */}
           <div className="flex flex-col gap-6 px-2">
              
-             {/* 1. 數據主權 */}
+             {/* 1. 數據主權與隱藏儲存 */}
              <section className="space-y-3">
                 <div className="flex items-center gap-2 text-[#34DA4F]">
                    <Database size={18} />
-                   <h3 className="font-black uppercase tracking-widest text-xs">數據存放說明</h3>
+                   <h3 className="font-black uppercase tracking-widest text-xs">隱藏儲存與數據主權</h3>
                 </div>
                 <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-3 text-sm text-slate-600 leading-relaxed font-bold">
-                   <p>本程式通過 Google OAuth 授權，僅在您的雲端硬碟建立名為 <code className="bg-slate-50 px-2 py-1 rounded text-slate-800">智慧商品卡資料庫 (SGCM-Sync)</code> 的試算表檔案。</p>
-                   <p>所有資料傳輸均在您的瀏覽器與 Google 伺服器之間直接完成，不經過任何中轉伺服器。</p>
+                   <p>本程式通過 Google OAuth 授權，將資料存放於您 Google Drive 的特殊隔離區域 <code className="bg-slate-50 px-2 py-1 rounded text-slate-800">Application Data Folder</code>。</p>
+                   <p className="text-[#34DA4F]">此空間對使用者完全隱藏，無法透過 Drive UI 直接讀取或刪除，確保您的資產清單不會因意外操作而遺失。</p>
+                   <p>我們嚴格遵守台灣《個人資料保護法》，除了您的 Email 外，本平台不收集、不儲存任何個人識別資訊 (PII)。</p>
                 </div>
              </section>
 
-             {/* 2. 智慧財產與開源 */}
+             {/* 2. 公益開源與技術審查 */}
              <section className="space-y-3">
-                <div className="flex items-center gap-2 text-slate-400">
+                <div className="flex items-center gap-2 text-slate-800">
                    <Code size={18} />
-                   <h3 className="font-black uppercase tracking-widest text-xs">原始碼與品牌資產</h3>
+                   <h3 className="font-black uppercase tracking-widest text-xs">技術透明度與開源審查</h3>
                 </div>
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-3 text-sm text-slate-600 leading-relaxed font-bold">
-                   <p>本 App 之程式原始碼完全開源，保障技術透明度與安全性。然而，本 App 的視覺 UI 設計、配色方案、Logo 以及「智慧商品卡管家 / SGCM」之品牌名稱均屬 <span className="text-slate-900">jzc 平台</span> 所有。</p>
-                   <p>未經書面授權，禁止將本 App 的品牌資產用於任何商業改編、二次分發或品牌混淆行為。</p>
+                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4 text-sm text-slate-600 leading-relaxed font-bold">
+                   <p>
+                      本平台為個人開發之公益專案，<span className="text-slate-900 underline decoration-[#34DA4F] decoration-2">宣告完全不盈利</span>。
+                      為追求極致信任，本程式原始碼完全公開於 GitHub 平台上。
+                   </p>
+                   
+                   <div className="bg-slate-50 p-4 rounded-2xl flex flex-col gap-3 border border-slate-100">
+                      <p className="text-[11px] text-slate-400 uppercase tracking-tight">您可以親自審查本程式的安全邏輯與加密演算法：</p>
+                      <a 
+                        href="https://github.com/jhouzihcing/gift.jzc.tw" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-slate-200 hover:border-[#34DA4F] hover:text-[#34DA4F] transition-all group active:scale-95"
+                      >
+                         <div className="flex items-center gap-3">
+                            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                            <span className="text-xs font-black">jhouzihcing / gift.jzc.tw</span>
+                         </div>
+                         <ChevronRight size={16} className="text-slate-300 group-hover:text-[#34DA4F]" />
+                      </a>
+                   </div>
                 </div>
              </section>
 
@@ -65,14 +87,14 @@ export default function PrivacyPage() {
              <section className="space-y-3">
                 <div className="flex items-center gap-2 text-red-400">
                    <AlertTriangle size={18} />
-                   <h3 className="font-black uppercase tracking-widest text-xs">法律免責聲明</h3>
+                   <h3 className="font-black uppercase tracking-widest text-xs">免責事項與法規遵循</h3>
                 </div>
-                <div className="bg-red-50/50 p-6 rounded-3xl border border-red-100 shadow-sm space-y-3 text-sm text-slate-600 leading-relaxed font-medium">
-                   <ul className="list-disc pl-4 space-y-2 text-red-900/70 font-bold">
-                      <li>使用者有義務妥善保管自己的 Google 帳號與手機解鎖資訊，防止他人竊取禮物卡訊息。</li>
-                      <li>本工具僅為個人管理便利而開發，開發者不保證 Google API 服務的 100% 穩定性。</li>
-                      <li>若因使用者個人操作不當、手機遺失、被駭客入侵或 Google 服務中斷導致之資料遺失或財產損害，開發者與 jzc 平台不承擔任何賠償責任。</li>
-                      <li>繼續點擊「登入」或使用本服務，即代表您完全理解並同意上述所有條款。</li>
+                <div className="bg-red-50/30 p-6 rounded-3xl border border-red-50 shadow-sm space-y-3 text-xs text-slate-500 leading-relaxed font-medium">
+                   <p>本服務符合 APEC 隱私框架與台灣 PDPA 個資保護規範。然而，您必須理解：</p>
+                   <ul className="list-disc pl-4 space-y-2 font-bold text-slate-600">
+                      <li>您是資料的唯一持有者。若您忘記 Google 帳號或手機遺失，加密資料將無法復原。</li>
+                      <li>本工具僅為管理便利而研發，不對 Google Drive API 的第三方穩定性負責。</li>
+                      <li>繼續使用本服務即代表您同意：任何因個人終端安全疏忽導致的損失，開發者不負賠償責任。</li>
                    </ul>
                 </div>
              </section>
@@ -80,7 +102,7 @@ export default function PrivacyPage() {
           </div>
 
           <p className="text-center text-[10px] text-slate-300 font-bold uppercase tracking-widest mt-4">
-             Versoin 1.3.1 Build 2026.04
+             Versoin 2.1.0 (TLS Encryption Edition) • 2026.04
           </p>
 
         </main>

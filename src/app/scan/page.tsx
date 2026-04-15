@@ -162,32 +162,31 @@ export default function ScanPage() {
 
             <div className="space-y-6 z-10">
               <div className="flex flex-col gap-3">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">選擇商家</label>
+                <div className="flex justify-between items-center px-1">
+                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">選擇存檔商家</label>
+                   <span className="text-[9px] text-[#34DA4F] font-black">7-11 專用模式</span>
+                </div>
                 <div className="flex gap-2 overflow-x-auto pb-4 pt-1 scrollbar-hide snap-x">
-                  {["7-11", ...customMerchants, "其它自訂"].map((m) => (
+                  {/* 7-11 是目前唯一啟用的選項 */}
+                  <button
+                    onClick={() => handleMerchantChange("7-11")}
+                    className="shrink-0 px-6 py-4 rounded-[1.5rem] font-black transition-all snap-start border-2 text-sm bg-slate-900 text-[#34DA4F] border-slate-900 shadow-xl shadow-slate-900/10"
+                  >
+                    7-11
+                  </button>
+
+                  {/* 其餘自訂商家顯示為待開發 */}
+                  {[...customMerchants, "其它自訂"].map((m) => (
                     <button
                       key={m}
-                      onClick={() => handleMerchantChange(m)}
-                      className={`shrink-0 px-6 py-4 rounded-[1.5rem] font-black transition-all snap-start border-2 text-sm ${
-                        (isCustomMode && m === "其它自訂") || (!isCustomMode && merchant === m)
-                          ? "bg-slate-900 text-[#34DA4F] border-slate-900 shadow-xl shadow-slate-900/10" 
-                          : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50 shadow-sm"
-                      }`}
+                      disabled
+                      className="shrink-0 px-6 py-4 rounded-[1.5rem] font-black transition-all snap-start border-2 text-sm bg-white text-slate-200 border-slate-50 cursor-not-allowed flex flex-col items-center gap-1 opacity-50"
                     >
-                      {m}
+                      <span>{m}</span>
+                      <span className="text-[8px] opacity-60">待開放</span>
                     </button>
                   ))}
                 </div>
-                
-                {isCustomMode && (
-                   <input 
-                     type="text" 
-                     placeholder="請輸入商家名稱..." 
-                     value={merchant}
-                     onChange={(e) => setMerchant(e.target.value)}
-                     className="w-full bg-white border-2 border-slate-100 rounded-[1.5rem] px-6 py-4 text-xl font-black text-slate-900 outline-none focus:border-[#34DA4F] transition-all shadow-sm"
-                   />
-                )}
               </div>
 
               <div className="flex flex-col gap-3">

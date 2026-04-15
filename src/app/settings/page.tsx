@@ -5,7 +5,7 @@ import { useCardStore } from "@/store/useCardStore";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signOut } from "next-auth/react";
-import { ChevronLeft, LogOut, Trash2, Plus, Store, RotateCcw, RefreshCw, ShieldCheck, ChevronRight } from "lucide-react";
+import { ChevronLeft, LogOut, Trash2, Plus, Store, RotateCcw, RefreshCw, ShieldCheck, ChevronRight, Code } from "lucide-react";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -87,37 +87,29 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          {/* 自訂商家管理 */}
-          <section>
-            <h3 className="text-xs font-black text-slate-400 mb-3 px-2 flex items-center gap-2 uppercase tracking-widest">
-              <Store size={14} /> 自訂商家管理
-            </h3>
+          {/* 自訂商家管理 - 預留入口 (待開發) */}
+          <section className="opacity-60 grayscale-[0.5]">
+            <div className="flex justify-between items-center mb-3 px-2">
+               <h3 className="text-xs font-black text-slate-400 flex items-center gap-2 uppercase tracking-widest">
+                 <Store size={14} /> 自訂商家管理
+               </h3>
+               <span className="text-[9px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded-md font-black">待開發</span>
+            </div>
             <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col gap-4">
               <div className="flex gap-2">
                 <input 
                   type="text" 
-                  placeholder="例如：家樂福、全聯" 
-                  value={newMerchant}
-                  onChange={(e) => setNewMerchant(e.target.value)}
-                  className="flex-1 bg-slate-50 border border-slate-100 rounded-[1rem] px-4 py-3 text-sm font-bold outline-none focus:border-[#34DA4F] focus:bg-white transition-all"
-                  onKeyDown={(e) => e.key === "Enter" && handleAddMerchant()}
+                  disabled
+                  placeholder="系統研發中，敬請期待..." 
+                  className="flex-1 bg-slate-50 border border-slate-100 rounded-[1rem] px-4 py-3 text-sm font-bold outline-none cursor-not-allowed opacity-50"
                 />
                 <button 
-                  onClick={handleAddMerchant}
-                  className="bg-slate-900 text-[#34DA4F] px-5 rounded-[1rem] font-black active:scale-95 transition-all flex items-center justify-center shadow-lg shadow-slate-900/10"
+                  disabled
+                  className="bg-slate-200 text-slate-400 px-5 rounded-[1rem] font-black cursor-not-allowed transition-all flex items-center justify-center"
                 >
                   <Plus size={20} />
                 </button>
               </div>
-              {customMerchants.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {customMerchants.map(m => (
-                    <span key={m} className="bg-[#34DA4F]/5 text-[#34DA4F] px-4 py-2 rounded-xl text-xs font-black border border-[#34DA4F]/10">
-                      {m}
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
           </section>
 
@@ -168,22 +160,43 @@ export default function SettingsPage() {
                安全與法律
             </h3>
             <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
-               <button 
-                 onClick={() => router.push("/settings/privacy")}
-                 className="w-full px-6 py-5 flex justify-between items-center active:bg-slate-50 transition-all"
-               >
-                 <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center">
-                       <ShieldCheck size={20} />
-                    </div>
-                    <div className="text-left">
-                       <p className="font-black text-sm text-slate-800">隱私權摘要與法律條款</p>
-                       <p className="text-[10px] text-slate-300 font-bold uppercase">Privacy & Legal</p>
-                    </div>
-                 </div>
-                 <ChevronRight size={20} className="text-slate-300" />
-               </button>
-            </div>
+                <button 
+                  onClick={() => router.push("/settings/privacy")}
+                  className="w-full px-6 py-5 flex justify-between items-center active:bg-slate-50 transition-all border-b border-slate-50"
+                >
+                  <div className="flex items-center gap-4">
+                     <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center">
+                        <ShieldCheck size={20} />
+                     </div>
+                     <div className="text-left">
+                        <p className="font-black text-sm text-slate-800">隱私權摘要與法律條款</p>
+                        <p className="text-[10px] text-slate-300 font-bold uppercase">Privacy & Legal</p>
+                     </div>
+                  </div>
+                  <ChevronRight size={20} className="text-slate-300" />
+                </button>
+
+                <a 
+                  href="https://github.com/jhouzihcing/gift.jzc.tw"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full px-6 py-5 flex justify-between items-center active:bg-slate-50 transition-all"
+                >
+                  <div className="flex items-center gap-4">
+                     <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center">
+                        <Code size={20} />
+                     </div>
+                     <div className="text-left">
+                        <p className="font-black text-sm text-slate-800">原始碼公開審查 (GitHub)</p>
+                        <p className="text-[10px] text-slate-300 font-bold uppercase tracking-tighter">Open Source Transparency</p>
+                     </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                     <span className="text-[9px] bg-[#34DA4F]/10 text-[#34DA4F] px-2 py-0.5 rounded-full font-black uppercase">v2.1.0</span>
+                     <ChevronRight size={20} className="text-slate-300" />
+                  </div>
+                </a>
+             </div>
           </section>
 
           {/* 帳號登出 */}

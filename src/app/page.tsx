@@ -51,11 +51,11 @@ export default function Home() {
              />
           </div>
           <h1 className="text-3xl font-black tracking-tight text-slate-900 relative">
-            智慧商品卡管家
-            <span className="absolute -top-1 -right-12 text-[10px] text-slate-300 font-bold tracking-normal italic">v1.12.0</span>
+            ZJ Card - 奇蹟卡
+            <span className="absolute -top-1 -right-12 text-[10px] text-slate-300 font-bold tracking-normal italic">v2.1.0</span>
           </h1>
           <p className="text-sm text-slate-400 mt-3 font-bold uppercase tracking-widest">
-            Smart Gift Card Manager
+            Smart Card Manager
           </p>
         </div>
 
@@ -86,7 +86,7 @@ export default function Home() {
       {/* 底部隱私條款提示 - 改為標準 Link 以利 Google 爬蟲掃描 */}
       <div className="absolute bottom-10 left-0 w-full text-center px-6">
          <div className="flex flex-col items-center gap-2">
-            卡片管家 <span className="text-[10px] text-slate-300 ml-1 font-black align-top">v1.12.0</span>
+            ZJ Card • 奇蹟卡 <span className="text-[10px] text-slate-300 ml-1 font-black align-top">v2.1.0</span>
            <p className="text-[10px] text-slate-300 font-bold leading-relaxed max-w-xs mx-auto">
              登入即代表您同意本程式之 
              <Link href="/settings/privacy" className="text-slate-400 underline underline-offset-4 ml-1 hover:text-[#34DA4F] transition-colors">
@@ -94,7 +94,7 @@ export default function Home() {
              </Link>
            </p>
            <p className="text-[10px] text-slate-200 font-medium">
-             本程式不保存個人資料，數據存儲於您的 Google Drive。
+             本程式不保存個資，數據經 AES-256 加密存儲於您 Google Drive 的隱藏空間。
            </p>
          </div>
       </div>

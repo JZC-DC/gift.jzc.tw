@@ -1,9 +1,14 @@
-const BACKUP_FILENAME = "sgcm_backup_2026.json";
+/**
+ * Google Drive 備份工具（SGCM v2）
+ * 備份檔案同樣存入 appDataFolder，使用者在 Drive UI 看不到。
+ */
+
+const BACKUP_FILENAME = "sgcm_backup_2026.enc";
 
 export async function findBackupFile(token: string) {
   const q = `name = '${BACKUP_FILENAME}' and trashed = false`;
   const response = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`,
+    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&spaces=appDataFolder`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }
@@ -17,10 +22,15 @@ export async function findBackupFile(token: string) {
 }
 
 export async function uploadBackup(token: string, content: any, fileId?: string) {
-  const metadata = {
+  const metadata: Record<string, unknown> = {
     name: BACKUP_FILENAME,
-    mimeType: "application/json",
+    mimeType: "text/plain",
   };
+
+  // 新建時才需要指定 parent
+  if (!fileId) {
+    metadata.parents = ["appDataFolder"];
+  }
 
   const body = new FormData();
   body.append(
@@ -29,7 +39,7 @@ export async function uploadBackup(token: string, content: any, fileId?: string)
   );
   body.append(
     "file",
-    new Blob([JSON.stringify(content)], { type: "application/json" })
+    new Blob([JSON.stringify(content)], { type: "text/plain" })
   );
 
   let url = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";

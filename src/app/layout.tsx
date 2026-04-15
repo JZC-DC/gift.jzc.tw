@@ -10,12 +10,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "智慧管家 - 智慧商品卡",
-  description: "您的專屬智慧禮物卡管家",
+  title: "ZJ Card - 奇蹟卡",
+  description: "專屬於您的奇蹟卡管家",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "智慧管家",
+    title: "ZJ Card",
   },
   icons: {
     icon: "/icons/icon-192x192.png",

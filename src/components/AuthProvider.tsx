@@ -21,7 +21,9 @@ function SessionSync() {
 
     if (session) {
       setUser({
-        uid: (session.user as any)?.id || session.user?.email || "unknown",
+        // session.uid = token.sub (Google 帳號 ID)，由 auth.ts session callback 注入
+        // 作為 AES-GCM 金鑰種子，確保每個帳號的加密金鑰唯一
+        uid: (session as any).uid || session.user?.email || "unknown",
         email: session.user?.email || null,
         displayName: session.user?.name || null,
         driveToken: (session as any).accessToken || null,

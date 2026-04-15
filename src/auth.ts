@@ -40,7 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
       authorization: {
         params: {
-          scope: "openid email profile https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets",
+          scope: "openid email profile https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/spreadsheets",
           access_type: "offline",
           prompt: "consent",
         },
@@ -70,6 +70,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       (session as any).accessToken = token.accessToken;
+      (session as any).uid = token.sub; // 傳給前端作為 AES 金鑰種子
       (session as any).error = token.error; // 傳遞給前端以偵測刷新失敗
       return session;
     },

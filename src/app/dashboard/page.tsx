@@ -13,7 +13,7 @@ export default function Dashboard() {
   const { cards, moveToTrash } = useCardStore();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState("全部");
+  // const [activeTab, setActiveTab] = useState("全部"); // 移除分類功能，專注於 7-11
 
   useEffect(() => {
     if (!loading && !user) {
@@ -23,18 +23,11 @@ export default function Dashboard() {
 
   const filteredCards = useMemo(() => {
     return cards
-      .filter((c) => {
-        const isNotDeleted = c.deletedAt === null;
-        if (activeTab === "全部") return isNotDeleted;
-        return isNotDeleted && c.merchant === activeTab;
-      })
+      .filter((c) => c.deletedAt === null)
       .sort((a, b) => a.amount - b.amount);
-  }, [cards, activeTab]);
-
-  const merchants = useMemo(() => {
-    const existing = cards.filter(c => c.deletedAt === null).map(c => c.merchant);
-    return Array.from(new Set(existing));
   }, [cards]);
+
+  // const merchants = useMemo(() => { ... }); // 移除商家清單計算
 
   if (loading || !user) return <div className="h-[100dvh] bg-slate-50 flex flex-col items-center justify-center font-black tracking-widest text-slate-300 animate-pulse">系統加載中...</div>;
 
@@ -53,9 +46,7 @@ export default function Dashboard() {
                className="w-full h-full object-contain"
              />
           </div>
-          <h1 className="text-xl font-black tracking-tight text-slate-900">
-            卡片管家 <span className="text-[10px] text-slate-300 ml-1 font-black align-top">v1.12.0</span>
-          </h1>
+            卡片管家 <span className="text-[10px] text-slate-300 ml-1 font-black align-top">v2.1.0</span>
         </div>
         <div className="flex items-center gap-2 bg-white/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-100 shadow-sm">
            <div className={`w-2 h-2 rounded-full ${
@@ -69,24 +60,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* 商家分類 (Tabs) - 固定高度 */}
-      <div className="px-6 py-2 overflow-x-auto whitespace-nowrap scrollbar-hide shrink-0 z-20 border-b border-slate-100/50">
-        <div className="flex gap-2">
-          {["全部", ...merchants].map((m) => (
-            <button
-              key={m}
-              onClick={() => setActiveTab(m)}
-              className={`px-5 py-2 rounded-full font-black text-xs transition-all flex items-center gap-2 uppercase tracking-widest ${
-                activeTab === m 
-                  ? 'bg-slate-900 text-[#34DA4F] shadow-lg' 
-                  : 'bg-white text-slate-300 border border-slate-100'
-              }`}
-            >
-              <Store size={12} /> {m === "7-11" ? "7-11" : m} 
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* 移除商家分類標籤區塊 */}
 
       {/* 主要內容區 - 緊湊排列 */}
       <main className="flex-1 flex flex-col justify-center overflow-hidden relative">
