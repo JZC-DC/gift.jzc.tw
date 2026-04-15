@@ -1,5 +1,7 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { encryptText, decryptText } from "@/lib/crypto";
+import { useAuthStore } from "./useAuthStore";
 
 export interface Card {
   id: string;
@@ -93,8 +95,42 @@ export const useCardStore = create<CardStore>()(
       setProStatus: (isPro) => set({ isPro }),
     }),
     {
-      name: "sgcm-cards-v1", // localStorage 的 key 名稱
-      // 只持久化 cards 和 customMerchants，不持久化 isInitialized
+      name: "sgcm-cards-v1",
+      storage: createJSONStorage(() => ({
+        getItem: async (name) => {
+          const value = localStorage.getItem(name);
+          if (!value) return null;
+          
+          // 如果內容不含點號，代表是舊版的明文 JSON
+          if (!value.includes(".")) return value;
+
+          // 嘗試取得目前的 UID 進行解密
+          const uid = useAuthStore.getState().user?.uid;
+          if (!uid) {
+            console.warn("[Storage] 未登入，暫時無法解密本地資料。");
+            return null; // 回傳 null 讓 Zustand 保持初始狀態 (隱藏卡片)
+          }
+
+          try {
+            return await decryptText(value, uid);
+          } catch (e) {
+            console.error("[Storage] 本地解密失敗:", e);
+            return null;
+          }
+        },
+        setItem: async (name, value) => {
+          const uid = useAuthStore.getState().user?.uid;
+          if (!uid) return; // 未登入不儲存
+          
+          try {
+            const encrypted = await encryptText(value, uid);
+            localStorage.setItem(name, encrypted);
+          } catch (e) {
+            console.error("[Storage] 本地加密失敗:", e);
+          }
+        },
+        removeItem: (name) => localStorage.removeItem(name),
+      })),
       partialize: (state) => ({
         cards: state.cards,
         isPro: state.isPro,

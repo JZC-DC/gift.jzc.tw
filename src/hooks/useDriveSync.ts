@@ -80,6 +80,10 @@ export function useDriveSync() {
         setSyncStatus(true, null);
         setSyncError(false);
 
+        // --- 新增：手動觸發本地持有的加密資料還原 ---
+        // 因為一開始加載時 UID 為空無法解密，現在登入了，必須強制重新載入本地資料
+        await (useCardStore.persist as any).rehydrate();
+
         const fileId = await getOrCreateDriveFile(user.driveToken!, user.uid);
         fileIdRef.current = fileId;
 

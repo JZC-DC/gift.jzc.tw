@@ -92,3 +92,46 @@ export async function decryptDB(ciphertext: string, uid: string): Promise<DriveD
 
   return JSON.parse(new TextDecoder().decode(plainBuf)) as DriveDB;
 }
+
+/**
+ * 將內容加密後回傳格式：<IV Base64>.<Ciphertext Base64>
+ */
+export async function encryptText(text: string, uid: string): Promise<string> {
+  const key = await deriveKey(uid);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const plaintext = new TextEncoder().encode(text);
+
+  const cipherBuf = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    plaintext
+  );
+
+  const ivB64 = btoa(String.fromCharCode(...iv));
+  const cipherB64 = btoa(
+    String.fromCharCode(...new Uint8Array(cipherBuf))
+  );
+
+  return `${ivB64}.${cipherB64}`;
+}
+
+/**
+ * 解密內容，若失敗拋出錯誤
+ */
+export async function decryptText(encrypted: string, uid: string): Promise<string> {
+  const [ivB64, cipherB64] = encrypted.split(".");
+  if (!ivB64 || !cipherB64) throw new Error("Invalid format");
+
+  const key = await deriveKey(uid);
+  const iv = Uint8Array.from(atob(ivB64), (c) => c.charCodeAt(0));
+  const cipherBuf = Uint8Array.from(atob(cipherB64), (c) => c.charCodeAt(0));
+
+  const plainBuf = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    key,
+    cipherBuf
+  );
+
+  return new TextDecoder().decode(plainBuf);
+}
+
