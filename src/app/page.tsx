@@ -89,8 +89,8 @@ export default function Home() {
             ZJ Card • 奇蹟卡 <span className="text-[10px] text-slate-300 ml-1 font-black align-top">{VERSION}</span>
            <p className="text-[10px] text-slate-300 font-bold leading-relaxed max-w-xs mx-auto">
              登入即代表您同意本程式之 
-             <Link href="/settings/privacy" className="text-slate-400 underline underline-offset-4 ml-1 hover:text-[#34DA4F] transition-colors">
-                隱私權政策與法律條款
+             <Link href="/privacy" className="text-slate-400 underline underline-offset-4 ml-1 hover:text-[#34DA4F] transition-colors">
+                隱私權政策與使用者條約
              </Link>
            </p>
            <p className="text-[10px] text-slate-200 font-medium">

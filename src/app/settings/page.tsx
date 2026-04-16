@@ -270,7 +270,7 @@ export default function SettingsPage() {
 
         <div className="flex flex-col gap-3">
            <button 
-             onClick={() => router.push("/settings/privacy")}
+             onClick={() => router.push("/privacy")}
              className="w-full bg-white px-6 py-5 rounded-[2.2rem] border border-slate-100 shadow-sm flex justify-between items-center active:scale-[0.98] transition-all"
            >
               <div className="flex items-center gap-4">
