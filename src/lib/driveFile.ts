@@ -126,8 +126,7 @@ export async function getOrCreateDriveFile(
 }
 
 /**
- * 讀取資料 (v2.21.0 支援雙金鑰校對)
- * @param fallbackUid 通常傳入 user.email
+ * 讀取資料 (v2.22.0 支援金鑰修復偵測)
  */
 export async function readDriveDB(
   token: string,
@@ -135,7 +134,7 @@ export async function readDriveDB(
   uid: string,
   logFn?: (msg: string) => void,
   fallbackUid?: string
-): Promise<{ db: DriveDB }> {
+): Promise<{ db: DriveDB, usedFallback: boolean }> {
   logFn?.(`📡 正在從雲端抓取原始數據 (ID: ${fileId.slice(0, 8)})...`);
   const res = await fetch(`${DRIVE_API}/files/${fileId}?alt=media&t=${Date.now()}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -148,33 +147,29 @@ export async function readDriveDB(
 
   const ciphertext = await res.text();
   
-  // 1. 如果是明文，直接返回
+  // 1. 如果是明文
   if (ciphertext.trimStart().startsWith("{")) {
     logFn?.(`🔓 偵測為明文 JSON，直接解析。`);
-    return { db: JSON.parse(ciphertext) as DriveDB };
+    return { db: JSON.parse(ciphertext) as DriveDB, usedFallback: false };
   }
 
   // 2. 嘗試主要 UID 解密
   try {
-    logFn?.(`🔓 嘗試使用系統 ID 進行解密...`);
     const decrypted = await decryptDB(ciphertext, uid);
-    logFn?.(`✅ 系統 ID 解密成功！數據內含 ${decrypted.cards.length} 張卡片。`);
-    return { db: decrypted };
+    logFn?.(`✅ 系統 ID 解密成功！`);
+    return { db: decrypted, usedFallback: false };
   } catch (e) {
-    logFn?.(`⚠️ 系統 ID 解密失敗，嘗試使用 Email 作為救援金鑰...`);
-    
-    // 3. Fallback: 使用 Email (fallbackUid) 解密
+    // 3. Fallback
     if (fallbackUid) {
        try {
          const decryptedFallback = await decryptDB(ciphertext, fallbackUid);
-         logFn?.(`✅ Email 救援成功！已成功找回跨裝置資料。`);
-         return { db: decryptedFallback };
+         logFn?.(`🩹 Email 救援成功！已成功跨裝置自動對齊。`);
+         return { db: decryptedFallback, usedFallback: true };
        } catch (fe) {
-         logFn?.(`🔥 本帳號所有金鑰皆無法解開此密文，請確認是否為同一個 Google 帳號。`);
+         logFn?.(`🔥 無法解密。請確認 Google 帳號是否一致。`);
          throw fe;
        }
     } else {
-       logFn?.(`🔥 無可用的救援金鑰，解密中斷。`);
        throw e;
     }
   }
@@ -190,7 +185,7 @@ export async function writeDriveDB(
   uid: string,
   logFn?: (msg: string) => void
 ): Promise<void> {
-  logFn?.(`🚀 加密並寫入雲端...`);
+  logFn?.(`🚀 正同步至雲端...`);
   const encrypted = await encryptDB({ ...db, lastModified: Date.now() }, uid);
   const res = await fetch(`${UPLOAD_API}/files/${fileId}?uploadType=media`, {
     method: "PATCH",
