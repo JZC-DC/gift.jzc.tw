@@ -34,7 +34,8 @@ const emptyDB = (): DriveDB => ({
 });
 
 /**
- * 在根目錄搜尋或建立資料檔案 (v2.16.0 純淨顯性版)
+ * 搜尋或建立資料檔案 (v2.17.0 絕對校驗版)
+ * 策略：搜尋所有同名檔案，並選取「最後修改時間」最新的一個，解決多設備衝突。
  */
 export async function getOrCreateDriveFile(
   token: string, 
@@ -42,34 +43,37 @@ export async function getOrCreateDriveFile(
 ): Promise<string> {
   const q = `name='${VISIBLE_FILENAME}' and trashed=false`;
   
-  // 策略：嘗試兩次搜尋，中間間隔 2 秒，以對抗 Google 索引延遲
   let attempts = 0;
   while (attempts < 2) {
+    // 請求 id 與 modifiedTime
     const res = await fetch(
-      `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive&t=${Date.now()}`,
+      `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id,modifiedTime)&spaces=drive&t=${Date.now()}`,
       { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
     );
     if (!res.ok) throw new Error(`Search failed`);
     const data = await res.json();
 
     if (data.files && data.files.length > 0) {
-      return data.files[0].id;
+      // v2.17.0: 按修改時間降序排列，取第一個（最新）
+      const sorted = data.files.sort((a: any, b: any) => 
+        new Date(b.modifiedTime).getTime() - new Date(a.modifiedTime).getTime()
+      );
+      console.log(`[Drive] 偵測到 ${sorted.length} 個同步檔，已鎖定最新版本：${sorted[0].id}`);
+      return sorted[0].id;
     }
 
     attempts++;
     if (attempts < 2) {
-      console.log(`[Drive] 尚未找到檔案，等待 2 秒後由重試搜尋... (Attempt ${attempts})`);
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
 
-  // 真的沒找到，才建立新檔案
-  console.log(`[Drive] 確認無現有檔案，正在建立新同步檔：${VISIBLE_FILENAME}`);
+  // 建立新檔案
   const encrypted = await encryptDB(emptyDB(), uid);
   const metadata = { 
     name: VISIBLE_FILENAME, 
     mimeType: "text/plain",
-    parents: ['root'] // 強制在根目錄建立
+    parents: ['root'] 
   };
 
   const form = new FormData();
@@ -87,14 +91,13 @@ export async function getOrCreateDriveFile(
 }
 
 /**
- * 從指定 File ID 讀取
+ * 讀取資料庫
  */
 export async function readDriveDB(
   token: string,
   fileId: string,
   uid: string
 ): Promise<{ db: DriveDB }> {
-  // 增加強制快取破除
   const res = await fetch(`${DRIVE_API}/files/${fileId}?alt=media&t=${Date.now()}`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
@@ -110,7 +113,7 @@ export async function readDriveDB(
 }
 
 /**
- * 寫入指定 File ID (PATCH)
+ * 寫入資料庫
  */
 export async function writeDriveDB(
   token: string,

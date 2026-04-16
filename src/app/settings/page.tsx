@@ -8,24 +8,25 @@ import { signOut } from "next-auth/react";
 import { 
   ChevronLeft, LogOut, Trash2, Plus, Store, RotateCcw, 
   RefreshCw, ShieldCheck, ChevronRight, Code, Database, 
-  EyeOff, Wallet
+  CloudDownload, AlertCircle
 } from "lucide-react";
 import { VERSION } from "@/constants/version";
+import { readDriveDB, getOrCreateDriveFile } from "@/lib/driveFile";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, isSyncing, lastSync } = useAuthStore();
+  const { user, isSyncing, lastSync, setSyncStatus, setSyncError } = useAuthStore();
   const { 
     cards, cloudFileIds, customMerchants, addCustomMerchant,
-    restoreFromTrash, deletePermanently 
+    restoreFromTrash, deletePermanently, setCards, setCloudFileIds
   } = useCardStore();
   
   const [newMerchant, setNewMerchant] = useState("");
+  const [isOverwriting, setIsOverwriting] = useState(false);
 
   const trashCards = cards.filter(c => c.deletedAt !== null);
   const activeCards = cards.filter(c => c.deletedAt === null);
 
-  // v2.15.0 資產與商家統計整合
   const merchantStats = useMemo(() => {
     const stats: Record<string, number> = {};
     activeCards.forEach(card => {
@@ -53,6 +54,42 @@ export default function SettingsPage() {
     await signOut({ callbackUrl: "/" });
   };
 
+  // v2.17.0: 強制從雲端覆蓋本地
+  const handleForceCloudRestore = async () => {
+    if (!user?.driveToken || !user?.uid) return;
+    if (!confirm("⚠️ 注意：這將會清除您目前手機上的所有更動，並強制以雲端最新存檔覆蓋。確定要執行嗎？")) return;
+
+    setIsOverwriting(true);
+    setSyncStatus(true, lastSync);
+
+    try {
+      // 1. 重新搜尋最新檔案 ID
+      const fileId = await getOrCreateDriveFile(user.driveToken, user.uid);
+      setCloudFileIds({ visible: fileId, hidden: null });
+
+      // 2. 強制拉取內容
+      const { db } = await readDriveDB(user.driveToken, fileId, user.uid);
+      
+      // 3. 覆蓋本地 Store
+      const syncedCards = db.cards.map(c => ({ ...c, isSynced: true }));
+      setCards(syncedCards);
+      
+      if (db.customMerchants) {
+        db.customMerchants.forEach(m => addCustomMerchant(m));
+      }
+
+      alert("🎉 雲端資料已成功覆蓋本地！");
+      setSyncStatus(false, Date.now());
+    } catch (err: any) {
+      console.error("[Sync] 強制校對失敗:", err);
+      alert("❌ 強制校對失敗：" + (err.message || "請檢查網路連線"));
+      setSyncError(true);
+    } finally {
+      setIsOverwriting(false);
+      setSyncStatus(false, Date.now());
+    }
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     alert("已複製到剪貼簿！");
@@ -73,7 +110,7 @@ export default function SettingsPage() {
 
       <main className="p-4 flex flex-col gap-6">
         
-        {/* 用戶資訊與總額快速摘要 - 回歸標準清新風格 */}
+        {/* 用戶資訊 */}
         <section className="bg-white p-7 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col gap-5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#34DA4F]/5 rounded-full blur-2xl -mr-8 -mt-8" />
           
@@ -102,32 +139,46 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* 同步穩定性診斷 */}
+        {/* 同步穩定性診斷 (v2.17.0 強化) */}
         <section className="bg-white p-7 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col gap-5 relative overflow-hidden">
            <div className="flex justify-between items-start z-10">
               <div className="space-y-1">
-                 <h3 className="text-[10px] font-black text-[#34DA4F] uppercase tracking-[0.2em]">Infinity Stability Sync</h3>
+                 <h3 className="text-[10px] font-black text-[#34DA4F] uppercase tracking-[0.2em]">Sync Resolution Pro</h3>
                  <div className="flex items-center gap-2">
-                    <p className="text-lg font-black text-slate-800">雲端空間同步對齊</p>
+                    <p className="text-xl font-black text-slate-800">跨裝置雲端校驗</p>
                     {isSyncing && <RefreshCw size={18} className="text-[#34DA4F] animate-spin" />}
                  </div>
               </div>
-              <button 
-                onClick={() => window.location.reload()} 
-                className="p-3 bg-slate-50 text-[#34DA4F] rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center active:scale-90 transition-all"
-              >
-                <RefreshCw size={20} />
-              </button>
+              <div className="flex gap-2">
+                 <button 
+                  onClick={handleForceCloudRestore}
+                  disabled={isOverwriting || isSyncing}
+                  className="p-3 bg-red-50 text-red-500 rounded-2xl border border-red-100 shadow-sm flex items-center justify-center animate-in fade-in active:scale-90 transition-all disabled:opacity-30"
+                  title="強制從雲端讀取"
+                >
+                  <CloudDownload size={20} />
+                </button>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="p-3 bg-slate-50 text-[#34DA4F] rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center active:scale-90 transition-all"
+                  title="重新啟動同步"
+                >
+                  <RefreshCw size={20} />
+                </button>
+              </div>
            </div>
+
+           {isOverwriting && (
+             <div className="flex items-center gap-2 text-red-500 bg-red-50/50 p-3 rounded-xl border border-red-50 animate-pulse">
+                <AlertCircle size={14} />
+                <span className="text-[10px] font-black">正在強制校對雲端資料...</span>
+             </div>
+           )}
            
            <div className="space-y-2 pt-2 border-t border-slate-50 relative z-10 text-[10px] font-bold">
               <div className="flex justify-between items-center text-slate-400">
-                <span className="flex items-center gap-1.5"><Database size={10} /> VISIBLE FILE</span>
-                <span onClick={() => cloudFileIds.visible && copyToClipboard(cloudFileIds.visible)} className="font-mono cursor-pointer truncate max-w-[140px] text-slate-300 hover:text-slate-500">{cloudFileIds.visible || "Loading..."}</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-400">
-                <span className="flex items-center gap-1.5"><EyeOff size={10} /> HIDDEN BACKUP</span>
-                <span onClick={() => cloudFileIds.hidden && copyToClipboard(cloudFileIds.hidden)} className="font-mono cursor-pointer truncate max-w-[140px] text-slate-300 hover:text-slate-500">{cloudFileIds.hidden || "Loading..."}</span>
+                <span className="flex items-center gap-1.5"><Database size={10} /> VISIBLE FILE ID</span>
+                <span onClick={() => cloudFileIds.visible && copyToClipboard(cloudFileIds.visible)} className="font-mono cursor-pointer truncate max-w-[140px] text-slate-300 hover:text-slate-500">{cloudFileIds.visible || "搜尋中..."}</span>
               </div>
            </div>
         </section>
@@ -139,7 +190,6 @@ export default function SettingsPage() {
           </h3>
           <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col gap-6">
             
-            {/* 新增商家 */}
             <div className="flex gap-2">
               <input 
                 type="text" 
@@ -156,7 +206,6 @@ export default function SettingsPage() {
               </button>
             </div>
 
-            {/* 商家統計清單 */}
             <div className="flex flex-col gap-2">
                {merchantStats.length === 0 ? (
                  <p className="text-center py-4 text-xs text-slate-300 font-bold uppercase tracking-widest">尚無商家資料</p>
@@ -202,7 +251,6 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* 底部按鈕 */}
         <div className="flex flex-col gap-3">
            <button 
              onClick={() => router.push("/settings/privacy")}
