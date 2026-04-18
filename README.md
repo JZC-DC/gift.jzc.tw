@@ -2,51 +2,59 @@
 
 # 💎 ZJ Card (JZC Design)
 ### 全方位的超商卡片管理與加密同步工具
-*A comprehensive convenience store card manager with encrypted cloud sync.*
+*An exquisite & secure card manager built for privacy and convenience.*
+
+[![CI/CD Build](https://github.com/jhouzihcing/gift.jzc.tw/actions/workflows/ci.yml/badge.svg)](https://github.com/jhouzihcing/gift.jzc.tw/actions/workflows/ci.yml)
+[![Security: CodeQL](https://github.com/jhouzihcing/gift.jzc.tw/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/jhouzihcing/gift.jzc.tw/actions/workflows/codeql-analysis.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/jhouzihcing/gift.jzc.tw/badge)](https://securityscorecards.dev/viewer/?uri=github.com/jhouzihcing/gift.jzc.tw)
+
+<br />
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jzc0220)
 
----
-
 </div>
 
+---
+
 ## 📖 專案簡介 (Introduction)
-這是一個基於 **Next.js 15** 開發的高品質 Web 應用，旨在幫助使用者方便地管理超商禮物卡、條碼，並透過 Google Drive 進行加密同步，確保您的數據隱私與安全性。
+**ZJ Card** 是一款基於 **Next.js 15** 開發的高性能 Web 應用，專為超商愛好者設計。我們致力於將您的禮物卡、條碼集中管理，並透過 **Google Drive** 實現跨裝置加密同步。
 
-## Getting Started
+> [!IMPORTANT]
+> **隱私第一 (Privacy First)**：所有敏感數據在同步前均經過 Web Crypto API 本地加密，確保除了您之外，沒有任何人（包括雲端空間提供者）能讀取您的內容。
 
-First, run the development server:
+## ✨ 核心特色 (Key Features)
+
+- 🔒 **端到端加密**：使用軍事級加密技術保護您的卡片資料。
+- ☁️ **雲端同步**：無縫接軌 Google Drive，換手機也不怕資料遺失。
+- 🏪 **超商最優化**：預設為 7-11 等主流商家開發，具備餘額統計與優先顯示功能。
+- 📱 **PWA 支持**：可安裝至手機桌面，享受如原生 APP 般的流暢操作體驗。
+- 🗑️ **回收機制**：貼心的回收桶設計，防止誤刪珍貴條碼。
+- 🛡️ **資安硬化**：深度整合 GitHub Actions、CodeQL 與 OpenSSF 安全規範。
+
+## 🛠️ 技術棧 (Tech Stack)
+
+| 類別 | 選擇 |
+| :--- | :--- |
+| **Framework** | ![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js) |
+| **State** | ![Zustand](https://img.shields.io/badge/Zustand-latest-brown?style=flat-square) |
+| **Security** | ![NextAuth](https://img.shields.io/badge/Next--Auth-v5-blue?style=flat-square) |
+| **Styling** | ![Tailwind CSS](https://img.shields.io/badge/Tailwind--CSS-v4-38B2AC?style=flat-square&logo=tailwind-css) |
+| **Testing** | ![Vitest](https://img.shields.io/badge/Vitest-latest-yellow?style=flat-square&logo=vitest) |
+
+## 🚀 快速開始 (Getting Started)
 
 ```bash
+# 安裝相依套件
+npm install
+
+# 啟動開發伺服器
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🤝 貢獻與安全 (Security & Contributing)
+發現漏洞或有新想法？請參閱我們的 [SECURITY.md](SECURITY.md) 了解漏洞回報流程。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
+---
+<div align="center">
+Made with ❤️ by JZC Design
+</div>
