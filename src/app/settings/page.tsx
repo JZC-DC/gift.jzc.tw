@@ -283,6 +283,34 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* 支持開發者 (Sponsorship) */}
+        <section className="bg-white p-7 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col gap-5 relative overflow-hidden">
+           <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-full blur-2xl -mr-8 -mt-8" />
+           <div className="flex justify-between items-center relative z-10">
+              <div className="space-y-1">
+                 <h3 className="text-[10px] font-black text-pink-500 uppercase tracking-[0.2em]">Support</h3>
+                 <p className="text-xl font-black text-slate-800">請開發者喝杯咖啡</p>
+              </div>
+              <div className="w-12 h-12 bg-pink-50 text-pink-500 rounded-2xl flex items-center justify-center">
+                 <Zap size={24} fill="currentColor" />
+              </div>
+           </div>
+           
+           <p className="text-xs text-slate-400 font-bold leading-relaxed relative z-10 text-balance">
+             如果您覺得 ZJ Card 對您有幫助，您的支持將是我們持續維護與開發的最佳動力！
+           </p>
+
+           <a 
+             href="https://ko-fi.com/jzc0220" 
+             target="_blank" 
+             rel="noopener noreferrer"
+             className="w-full bg-slate-900 text-white py-5 rounded-[1.8rem] font-black text-sm flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xl shadow-slate-200"
+           >
+             <Store size={18} className="text-[#34DA4F]" />
+             前往 Ko-fi 贊助支持
+           </a>
+        </section>
+
         <div className="flex flex-col gap-3">
            <button 
              onClick={() => router.push("/privacy")}
