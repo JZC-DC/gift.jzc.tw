@@ -1,6 +1,17 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+
+# 💎 ZJ Card (JZC Design)
+### 全方位的超商卡片管理與加密同步工具
+*A comprehensive convenience store card manager with encrypted cloud sync.*
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jzc0220)
+
+---
+
+</div>
+
+## 📖 專案簡介 (Introduction)
+這是一個基於 **Next.js 15** 開發的高品質 Web 應用，旨在幫助使用者方便地管理超商禮物卡、條碼，並透過 Google Drive 進行加密同步，確保您的數據隱私與安全性。
 
 ## Getting Started
 

@@ -283,31 +283,37 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* 支持開發者 (Sponsorship) */}
-        <section className="bg-white p-7 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col gap-5 relative overflow-hidden">
-           <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-full blur-2xl -mr-8 -mt-8" />
-           <div className="flex justify-between items-center relative z-10">
-              <div className="space-y-1">
-                 <h3 className="text-[10px] font-black text-pink-500 uppercase tracking-[0.2em]">Support</h3>
-                 <p className="text-xl font-black text-slate-800">請開發者喝杯咖啡</p>
+        {/* 支持開發者 (Premium Highlight) */}
+        <section className="bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+           {/* 背景動態飾點 */}
+           <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/20 rounded-full blur-3xl -mr-8 -mt-8 animate-pulse" />
+           <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#34DA4F]/10 rounded-full blur-2xl -ml-6 -mb-6" />
+           
+           <div className="flex justify-between items-start relative z-10">
+              <div className="space-y-1.5">
+                 <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-pink-500 rounded-full animate-ping" />
+                    <h3 className="text-[10px] font-black text-pink-400 uppercase tracking-[0.3em]">Support Project</h3>
+                 </div>
+                 <p className="text-2xl font-black text-white tracking-tight">請開發者喝杯咖啡</p>
               </div>
-              <div className="w-12 h-12 bg-pink-50 text-pink-500 rounded-2xl flex items-center justify-center">
-                 <Zap size={24} fill="currentColor" />
+              <div className="w-14 h-14 bg-white/5 border border-white/10 backdrop-blur-xl text-pink-500 rounded-2xl flex items-center justify-center shadow-inner">
+                 <Zap size={28} fill="currentColor" className="drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]" />
               </div>
            </div>
            
-           <p className="text-xs text-slate-400 font-bold leading-relaxed relative z-10 text-balance">
-             如果您覺得 ZJ Card 對您有幫助，您的支持將是我們持續維護與開發的最佳動力！
+           <p className="text-xs text-slate-400 font-bold leading-relaxed mt-4 relative z-10 text-pretty">
+             如果您覺得 ZJ Card 實用且安全，您的贊助將直接支持專案的伺服器維護與功能開發，讓我們能一起走得更遠！
            </p>
 
            <a 
              href="https://ko-fi.com/jzc0220" 
              target="_blank" 
              rel="noopener noreferrer"
-             className="w-full bg-slate-900 text-white py-5 rounded-[1.8rem] font-black text-sm flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xl shadow-slate-200"
+             className="w-full mt-6 bg-gradient-to-r from-pink-500 to-rose-600 text-white py-5 rounded-[1.8rem] font-black text-sm flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_10px_30px_rgba(244,63,94,0.3)] hover:shadow-[0_15px_40px_rgba(244,63,94,0.4)]"
            >
-             <Store size={18} className="text-[#34DA4F]" />
-             前往 Ko-fi 贊助支持
+             <Store size={18} className="text-white/80" />
+             前往 Ko-fi 支持開發者
            </a>
         </section>
 
