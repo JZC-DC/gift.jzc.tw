@@ -11,7 +11,7 @@
 <br />
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jzc0220)
-![Sinopac](https://img.shields.io/badge/永豐銀行-申請中-lightgrey?style=flat-square)
+![Sinopac](https://img.shields.io/badge/永豐銀行-申請中-lightgrey?style=for-the-badge)
 
 </div>
 
