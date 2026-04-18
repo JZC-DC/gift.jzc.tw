@@ -315,6 +315,13 @@ export default function SettingsPage() {
              <Store size={18} className="text-white/80" />
              前往 Ko-fi 支持開發者
            </a>
+
+           <button 
+             disabled
+             className="w-full mt-3 bg-white/5 text-slate-500 py-4 rounded-[1.5rem] font-bold text-xs flex items-center justify-center gap-2 border border-white/5 cursor-not-allowed"
+           >
+             永豐銀行個人收款 (申請中)
+           </button>
         </section>
 
         <div className="flex flex-col gap-3">
