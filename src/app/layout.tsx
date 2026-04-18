@@ -22,6 +22,20 @@ export const metadata: Metadata = {
     apple: "/logo.png?v=2.4.4",
     shortcut: "/favicon.ico?v=2.4.4",
   },
+  manifest: "/manifest.webmanifest",
+  openGraph: {
+    title: "ZJ Card - 奇蹟卡",
+    description: "專屬於您的全方位超商卡片管家，提供安全、便捷的條碼管理與加密同步。",
+    url: "https://gift.jzc.tw",
+    siteName: "ZJ Card",
+    locale: "zh_TW",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ZJ Card - 奇蹟卡",
+    description: "全方位超商卡片管理與加密同步工具",
+  },
   verification: {
     google: "cef01WpDC7VBZmuRk_0KfG_BZu5OFo4oyyK-9OMeUlg",
   },
@@ -30,10 +44,13 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
   viewportFit: "cover",
-  themeColor: "#34DA4F",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#34DA4F" },
+    { media: "(prefers-color-scheme: dark)", color: "#1e293b" },
+  ],
 };
 
 export default function RootLayout({
