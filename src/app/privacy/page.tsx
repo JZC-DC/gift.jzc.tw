@@ -1,7 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ShieldCheck, Database, Code, AlertTriangle, Globe, Lock, Share2, Trash2, Gavel, HeartHandshake, Eye, ShieldAlert, Copyright, ExternalLink } from "lucide-react";
+import { 
+  ChevronLeft, ShieldCheck, Database, Code, AlertTriangle, 
+  Globe, Lock, Share2, Trash2, Gavel, HeartHandshake, 
+  Eye, ShieldAlert, Copyright, ExternalLink, Mail, Scale, Info
+} from "lucide-react";
 import Link from "next/link";
 import { VERSION } from "@/constants/version";
 
@@ -15,6 +19,7 @@ import { VERSION } from "@/constants/version";
 export default function PrivacyPage() {
   const router = useRouter();
   const githubUrl = "https://github.com/jhouzihcing/gift.jzc.tw";
+  const contactEmail = "admin@jzc.tw";
 
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col font-sans text-gray-900 pb-24">
@@ -42,13 +47,13 @@ export default function PrivacyPage() {
             
             <section className="space-y-4 text-center md:text-left">
                <h2 className="text-4xl font-black text-slate-900 leading-tight">ZJ Card 奇蹟卡</h2>
-               <div className="p-6 bg-[#34DA4F]/5 rounded-[2rem] border border-[#34DA4F]/10 space-y-4">
+               <div className="p-6 bg-[#34DA4F]/5 rounded-[2rem] border border-[#34DA4F]/10 space-y-4 text-left">
                   <p className="text-[#1A8A2A] font-black text-base leading-relaxed">
                      本程式為「完全免費、開源且不盈利」之公益專案。
-                     我們深知個資安全的重要性，因此採用了最嚴格的加密技術，確保您的資料主權始終掌握在自己手中。
+                     我們依據《個人資料保護法》之相關規定，致力於保護您的隱私。本政策說明我們如何蒐集、處理及利用您的個人資料。
                   </p>
                   
-                  {/* v2.30.0 GitHub Link */}
+                  {/* GitHub Link */}
                   <div className="flex flex-col md:flex-row gap-3 pt-2">
                      <Link 
                        href={githubUrl}
@@ -67,77 +72,103 @@ export default function PrivacyPage() {
                </div>
             </section>
 
-            {/* 中文：1. 資料存取 */}
+            {/* 中文：1. 資料存取方式與特定目的 */}
             <section className="space-y-4">
                <div className="flex items-center gap-3 text-blue-600">
                   <Eye size={24} />
-                  <h3 className="text-xl font-black tracking-tight">1. 資料存取與透明度</h3>
+                  <h3 className="text-xl font-black tracking-tight">1. 資料存取方式與特定目的</h3>
                </div>
-               <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+               <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-sm space-y-4 overflow-hidden">
                   <p className="text-slate-600 font-bold leading-relaxed">
-                    本程式僅存取您的 <span className="text-slate-900">Google 主要電子郵件</span> 用於辨識身分，並使用 <span className="text-slate-900">Google 雲端硬碟空間</span> 來同步您的禮物卡餘額與條碼資訊。
+                    本程式僅基於身分辨識與提供「禮物卡餘額與條碼同步」之核心服務目的，在您授權下存取您的 <span className="text-slate-900">Google 主要電子郵件地址</span>。
                   </p>
-                  <p className="text-slate-500 text-sm leading-relaxed">
-                    同步檔案存放於 Google Drive 的隱藏隔離區 (appDataFolder) 以及根目錄。這些資料完全存在於您的雲端帳號中，開發者無法直接存取。
+                  <p className="text-slate-600 font-bold leading-relaxed">
+                    同步檔案存放於您 Google Drive 帳號內的隱藏隔離區與根目錄。這些資料僅供您本人同步資訊之用，開發者無法且絕不主動讀取、攔截或傳輸。
                   </p>
                </div>
             </section>
 
-            {/* 中文：2. 資料用途與加密 */}
+            {/* 中文：2. 資料安全與適當安全措施 */}
             <section className="space-y-4">
                <div className="flex items-center gap-3 text-[#34DA4F]">
                   <ShieldCheck size={24} />
-                  <h3 className="text-xl font-black tracking-tight">2. 資料安全與加密儲存</h3>
+                  <h3 className="text-xl font-black tracking-tight">2. 資料安全與適當安全措施</h3>
                </div>
                <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-sm space-y-4 text-slate-600 font-bold">
-                  <p>所有禮物卡資料在離開您的手機前，皆已通過 <span className="text-slate-900 underline decoration-[#34DA4F] decoration-2 underline-offset-4">AES-256-GCM 高強度加密</span>。</p>
                   <p>
-                    加密密鑰是依據您的 Google 身分於本機生成；即使 Google 官方或開發者獲取了檔案，在沒有您身分授權的情況下也無法解讀內容。這意味著我們絕對不會、也無法讀取您的禮物卡細節。
+                    為落實《個人資料保護法》第 27 條關於適當安全措施之要求，本程式採用 AES-256-GCM 高強度加密技術。
+                  </p>
+                  <p>
+                    加密密鑰是依據您的 Google 身分於本機生成；即使檔案存放於雲端空間，未經您的身分授權亦無法解讀。我們已採取符合業界標準之技術措施，防止資料被竊取、竄改或洩漏。
                   </p>
                </div>
             </section>
 
-            {/* 中文：3. 絕不分享宣告 */}
+            {/* 中文：新章節：使用 Cookie 與本機存儲技術 */}
             <section className="space-y-4">
-               <div className="flex items-center gap-3 text-orange-500">
-                  <Share2 size={24} />
-                  <h3 className="text-xl font-black tracking-tight">3. 數據主權與不分享宣告</h3>
+               <div className="flex items-center gap-3 text-cyan-600">
+                  <Info size={24} />
+                  <h3 className="text-xl font-black tracking-tight">3. 使用 Cookie 與本機存儲技術</h3>
                </div>
-               <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-sm text-slate-600 font-bold leading-relaxed">
-                  本程式絕對不會將您的資料分享給任何第三方。您的數據不是我們的產品，這是一份屬於您的加密數位資產。
+               <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-sm space-y-4 text-slate-600 font-bold">
+                  <p>
+                    本程式使用 <span className="text-slate-900">Cookies (Session)</span> 技術以維持您的登入狀態。這些 Cookie 僅用於核心功能辨識，不包含任何廣告追蹤資訊。
+                  </p>
+                  <p>
+                    本程式亦使用 <span className="text-slate-900">LocalStorage</span> 技術於您的本機裝置暫存加密後的卡片清單。這能確保在離線狀態下仍能顯示條碼，且所有本地數據皆受到加密保護。
+                  </p>
                </div>
             </section>
 
-            {/* 中文：4. 刪除與保留 */}
+            {/* 中文：4. 行使個資刪除權 */}
             <section className="space-y-4">
                <div className="flex items-center gap-3 text-red-500">
                   <Trash2 size={24} />
-                  <h3 className="text-xl font-black tracking-tight">4. 刪除政策：您的遺忘權</h3>
+                  <h3 className="text-xl font-black tracking-tight">4. 行使個資刪除權</h3>
                </div>
                <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-sm space-y-3 font-bold text-slate-600">
-                  <p>您隨時擁有徹底刪除所有資料的權利。您可以透過設定中的「核彈級重設」功能，一鍵清除所有雲端同步檔與本地快取。</p>
-                  <p className="text-xs text-slate-400 font-medium">註：回收桶內的卡片將在 15 天後自動永久清除。</p>
+                  <p>
+                    您得依《個人資料保護法》第 11 條規定，隨時行使對您各項資料之刪除權。您可以透過設定中的「核彈級重設」或「刪除帳號」功能，一鍵清除所有雲端同步檔與本地快取。
+                  </p>
+                  <p className="text-xs text-slate-400 font-medium leading-relaxed italic">
+                    註：刪除操作一旦執行即無法還原。若因刪除導致禮物卡資訊遺失，本程式不負賠償責任。
+                  </p>
                </div>
             </section>
 
-            {/* 中文：5. 法律免責聲明 */}
+            {/* 中文：5. 法律免責與責任上限 */}
             <section className="space-y-4">
                <div className="flex items-center gap-3 text-indigo-700">
-                  <ShieldAlert size={24} />
-                  <h3 className="text-xl font-black tracking-tight">5. 免責聲明：請理性使用</h3>
+                  <Gavel size={24} />
+                  <h3 className="text-xl font-black tracking-tight">5. 法律免責與責任上限</h3>
                </div>
                <div className="bg-red-50/50 p-8 rounded-3xl border border-red-100 space-y-4">
                   <p className="text-sm text-slate-700 leading-relaxed font-black">
-                     本程式以「現狀 (As Is)」提供。作為個人公益專案，開發者對於下列情況不負法律責任：
+                     本程式以「現狀 (As Is)」提供。作為非盈利公益性質之專案：
                   </p>
                   <ul className="list-disc pl-5 space-y-2 text-xs text-slate-500 font-bold">
-                     <li>個人 Google 帳號安全性疏忽導致的資料外洩。</li>
-                     <li>因個人操作或裝置損毀導致的禮物卡價值損失。</li>
-                     <li>Google Drive 雲端服務中斷導致的功能異常。</li>
+                     <li>在任何情況下，開發者對您因使用本服務所衍生之損害（包括但不限於禮物卡價值損失、資料遺失、利潤損失），其損害賠償責任總額以「新台幣零元」為上限。</li>
+                     <li>因不可抗力因素（如天災、戰爭、Google 服務大規模中斷、駭客攻擊等）導致之資料外洩或服務異常，本程式不負擔法律責任。</li>
+                     <li>您應妥善保管 Google 帳號憑證與裝置安全性。任何因您授權第三方存取帳號而導致之損失，與本程式無涉。</li>
                   </ul>
-                  <p className="text-[10px] text-red-400 font-bold italic">
-                    * 繼續使用即代表您同意上述條款，並承擔相關工具之使用風險。
+               </div>
+            </section>
+
+            {/* 中文：6. 管轄權與聯絡方式 */}
+            <section className="space-y-4">
+               <div className="flex items-center gap-3 text-slate-600">
+                  <Scale size={24} />
+                  <h3 className="text-xl font-black tracking-tight">6. 管轄權與聯絡方式</h3>
+               </div>
+               <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-sm space-y-4 text-slate-600 font-bold">
+                  <p>
+                    本聲明之解釋與適用，以及因本聲明所生之爭議，均以中華民國法律為準據法，並以臺灣臺北地方法院為第一審管轄法院。
                   </p>
+                  <div className="flex items-center gap-2 pt-2">
+                     <Mail size={18} className="text-[#34DA4F]" />
+                     <span>聯絡信箱：</span>
+                     <Link href={`mailto:${contactEmail}`} className="text-slate-900 border-b border-slate-900/10">{contactEmail}</Link>
+                  </div>
                </div>
             </section>
 
@@ -153,39 +184,38 @@ export default function PrivacyPage() {
                 <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                    <Globe size={14} /> Formal Privacy Policy (English Version for Google Review)
                 </h3>
-                <p className="text-[10px] text-slate-400 font-medium">This section fulfills the Google OAuth verification requirements.</p>
              </div>
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-[11px] leading-relaxed text-slate-500 font-medium border-t border-slate-50 pt-8">
                 
                 <div className="space-y-2">
-                   <h4 className="font-black text-slate-700 uppercase tracking-tight">1. Data Accessed</h4>
-                   <p>ZJ Card accesses your Google primary email for verification and Google Drive storage (appDataFolder and specific root files) for user-controlled synchronization.</p>
+                   <h4 className="font-black text-slate-700 uppercase tracking-tight">1. Purpose & Access</h4>
+                   <p>ZJ Card accesses your Google primary email and Drive storage (appDataFolder/root) solely for identity verification and user-controlled data synchronization.</p>
                 </div>
 
                 <div className="space-y-2">
-                   <h4 className="font-black text-slate-700 uppercase tracking-tight">2. Data Usage</h4>
-                   <p>User data is used solely to store and sync an encrypted JSON backup of the user’s gift card list. Processing is done client-side. No data is used for unauthorized purposes.</p>
+                   <h4 className="font-black text-slate-700 uppercase tracking-tight">2. Cookies & Storage</h4>
+                   <p>We use Session Cookies for authentication and LocalStorage for encrypted temporary data. We do not use third-party tracking or advertising cookies.</p>
                 </div>
 
                 <div className="space-y-2">
-                   <h4 className="font-black text-slate-700 uppercase tracking-tight">3. Data Sharing</h4>
-                   <p>We do NOT share your data with any third parties. All Google user data remains within the user's personal cloud environment and local device.</p>
+                   <h4 className="font-black text-slate-700 uppercase tracking-tight">3. Data Protection</h4>
+                   <p>In accordance with PDPA Article 27, data is encrypted via AES-256-GCM before storage. We implement appropriate technical measures to prevent unauthorized access.</p>
                 </div>
 
                 <div className="space-y-2">
-                   <h4 className="font-black text-slate-700 uppercase tracking-tight">4. Storage & Protection</h4>
-                   <p>All sensitive information is encrypted via high-strength AES-256-GCM before upload. The developer cannot decrypt any user data.</p>
+                   <h4 className="font-black text-slate-700 uppercase tracking-tight">4. Right to Deletion</h4>
+                   <p>Users may exercise their right to deletion (PDPA Article 11) via the "Delete Account" feature. This process is irreversible.</p>
                 </div>
 
                 <div className="space-y-2">
-                   <h4 className="font-black text-slate-700 uppercase tracking-tight">5. Retention & Deletion</h4>
-                   <p>Data exists as long as the user maintains it. Users can delete all cloud sync files and local records using the "Nuclear Reset" tool in settings.</p>
+                   <h4 className="font-black text-slate-700 uppercase tracking-tight">5. Limitation of Liability</h4>
+                   <p>This is a non-profit project. Total liability for any damages (data loss, value loss) is limited to USD $0.00. We are not liable for force majeure events.</p>
                 </div>
 
                 <div className="space-y-2">
-                   <h4 className="font-black text-slate-700 uppercase tracking-tight">6. Non-Profit Disclaimer</h4>
-                   <p>This software is a non-profit, <Link href={githubUrl} target="_blank" className="underline">open-source</Link> personal project. Brand logos, names, and the domain are owned by the developer. It is provided "AS IS".</p>
+                   <h4 className="font-black text-slate-700 uppercase tracking-tight">6. Jurisdiction</h4>
+                   <p>These terms are governed by the laws of the R.O.C. Any disputes shall be settled in the Taiwan Taipei District Court. Contact: admin@jzc.tw</p>
                 </div>
 
              </div>
@@ -198,7 +228,7 @@ export default function PrivacyPage() {
                    ZJ Card公益開發小組 • Version {VERSION}
                 </div>
                 <div className="opacity-50 text-[9px] tracking-widest mt-2 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-                   最後更新時間 Last Updated: 2026-04-19 17:15:00
+                   最後更新時間 Last Updated: 2026-04-19 21:00:00
                 </div>
              </div>
           </footer>

@@ -8,7 +8,8 @@ import { signOut } from "next-auth/react";
 import { 
   ChevronLeft, LogOut, Trash2, Plus, Store, RotateCcw, 
   RefreshCw, ShieldCheck, ChevronRight, CheckCircle2, 
-  Terminal, AlertTriangle, Zap, Trash, Lock, HeartHandshake
+  Terminal, AlertTriangle, Zap, Trash, Lock, HeartHandshake,
+  UserX, ShieldAlert, X
 } from "lucide-react";
 import { VERSION } from "@/constants/version";
 import { deleteDriveFile } from "@/lib/driveFile";
@@ -24,6 +25,9 @@ export default function SettingsPage() {
   const [newMerchant, setNewMerchant] = useState("");
   const [showLogs, setShowLogs] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteInput, setDeleteInput] = useState("");
   const logEndRef = useRef<HTMLDivElement>(null);
 
   const trashCards = cards.filter(c => c.deletedAt !== null);
@@ -72,20 +76,19 @@ export default function SettingsPage() {
   };
 
   /**
-   * 核彈級重設 (Nuclear Reset)
-   * 1. 刪除雲端檔案 (隱藏 + 公開)
-   * 2. 清空本地 Store
-   * 3. 清理快取並重啟
+   * 永久刪除帳號 (Delete Account)
+   * 1. 刪除雲端檔案
+   * 2. 清除本地所有資料
+   * 3. 登出帳號
    */
-  const handleResetCloudSync = async () => {
-    if (!user?.driveToken) return;
-    
-    const confirmed = window.confirm(
-      "⚠️ 警告：這將永久刪除雲端上的所有同步資料，並清空此設備的卡片。此操作無法撤銷。確定要重設嗎？"
-    );
-    if (!confirmed) return;
+  const handleDeleteAccount = async () => {
+    if (deleteInput !== "DELETE") return;
+    if (!user?.driveToken) {
+      alert("⚠️ 登入逾期，請重新登入後再試。");
+      return;
+    }
 
-    setIsResetting(true);
+    setIsDeletingAccount(true);
     try {
       // 1. 刪除雲端檔案
       if (cloudFileIds.hidden) {
@@ -95,12 +98,40 @@ export default function SettingsPage() {
         await deleteDriveFile(user.driveToken, cloudFileIds.visible);
       }
 
-      // 2. 清除本地快取
+      // 2. 清毀本地金鑰與資料
+      localStorage.clear(); 
+      setCards([]);
+      
+      // 3. 登出並返回首頁
+      await signOut({ callbackUrl: "/" });
+    } catch (e: any) {
+      alert("❌ 刪除失敗: " + e.message);
+      setIsDeletingAccount(false);
+    }
+  };
+
+  const handleResetCloudSync = async () => {
+    if (!user?.driveToken) return;
+    
+    const confirmed = window.confirm(
+      "⚠️ 警告：這將永久刪除雲端上的同步資料，並清空此設備的卡片。確定要重設嗎？"
+    );
+    if (!confirmed) return;
+
+    setIsResetting(true);
+    try {
+      if (cloudFileIds.hidden) {
+        await deleteDriveFile(user.driveToken, cloudFileIds.hidden);
+      }
+      if (cloudFileIds.visible) {
+        await deleteDriveFile(user.driveToken, cloudFileIds.visible);
+      }
+
       localStorage.clear(); 
       setCards([]);
       
       alert("✅ 雲端資料已清空。即將重新整理頁面...");
-      window.location.href = "/"; // 強制回到首頁並重載
+      window.location.reload();
     } catch (e: any) {
       alert("❌ 重設失敗: " + e.message);
     } finally {
@@ -110,6 +141,14 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-[100dvh] bg-gray-50 flex flex-col font-sans text-gray-900 pb-12">
+      <DeleteAccountModal 
+        isOpen={showDeleteModal} 
+        onClose={() => setShowDeleteModal(false)} 
+        onConfirm={handleDeleteAccount}
+        isDeleting={isDeletingAccount}
+        input={deleteInput}
+        setInput={setDeleteInput}
+      />
       
       <div className="max-w-2xl mx-auto w-full sticky top-0 z-50">
         <header className="px-4 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-6 flex items-center gap-4 bg-gray-50/80 backdrop-blur-md">
@@ -302,8 +341,8 @@ export default function SettingsPage() {
               </div>
            </div>
            
-           <p className="text-xs text-slate-400 font-bold leading-relaxed mt-4 relative z-10 text-pretty">
-              ZJ Card 目前已轉為「完全免費且開源」之公益專案。如果您覺得本程式對您有幫助，歡迎小額贊助支持伺服器維護與持續開發。
+           <p className="text-xs text-slate-400 font-bold leading-relaxed mt-4 relative z-10 text-pretty text-center md:text-left">
+              ZJ Card 為公益開源專案。如果您覺得本程式對您有幫助，歡迎小額投幣支持開發者持續維護開發。
            </p>
 
            <a 
@@ -313,15 +352,8 @@ export default function SettingsPage() {
              className="w-full mt-6 bg-gradient-to-r from-pink-500 to-rose-600 text-white py-5 rounded-[1.8rem] font-black text-sm flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_10px_30px_rgba(244,63,94,0.3)] hover:shadow-[0_15px_40px_rgba(244,63,94,0.4)]"
            >
              <Store size={18} className="text-white/80" />
-             前往 Ko-fi 支持開發者
+             前往 Ko-fi 贊助我們
            </a>
-
-           <button 
-             disabled
-             className="w-full mt-3 bg-white/5 text-slate-500 py-4 rounded-[1.5rem] font-bold text-xs flex items-center justify-center gap-2 border border-white/5 cursor-not-allowed"
-           >
-             永豐銀行個人收款 (申請中)
-           </button>
         </section>
 
         <div className="flex flex-col gap-3">
@@ -336,7 +368,13 @@ export default function SettingsPage() {
               <ChevronRight size={20} className="text-slate-200" />
            </button>
            <button onClick={handleLogout} className="w-full bg-white text-slate-400 py-6 rounded-[2.2rem] font-black flex items-center justify-center gap-2 border border-slate-100 shadow-sm hover:text-red-500 hover:bg-red-50 hover:border-red-100 transition-all active:scale-[0.98]">
-             <LogOut size={20} /> 登出帳號
+             <LogOut size={20} /> 登出目前帳號
+           </button>
+           <button 
+             onClick={() => setShowDeleteModal(true)}
+             className="w-full bg-red-50 text-red-500 py-5 rounded-[2.2rem] font-black flex items-center justify-center gap-2 border border-red-100 shadow-sm transition-all active:scale-[0.98] mt-4"
+           >
+             <UserX size={20} /> 永久刪除帳號與資料
            </button>
         </div>
 
@@ -344,6 +382,77 @@ export default function SettingsPage() {
            <p className="text-[10px] font-black tracking-[0.5em] uppercase leading-none">ZJ Card {VERSION}</p>
         </div>
       </main>
+    </div>
+  );
+}
+
+/** 刪除帳號確認彈窗 */
+function DeleteAccountModal({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  isDeleting,
+  input,
+  setInput
+}: any) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+       <div className="bg-white w-full max-w-sm rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+          <div className="p-8 pb-6 flex flex-col items-center text-center gap-4">
+             <div className="w-16 h-16 bg-red-100 text-red-500 rounded-3xl flex items-center justify-center shadow-inner">
+                <ShieldAlert size={32} />
+             </div>
+             <div className="space-y-2">
+                <h2 className="text-xl font-black text-slate-800 tracking-tight">永久刪除帳號</h2>
+                <p className="text-xs text-slate-400 font-bold leading-relaxed">
+                   此操作將永久清除雲端與本地的所有卡片資訊，<span className="text-red-500">操作一旦執行即無法還原</span>。
+                </p>
+             </div>
+          </div>
+
+          <div className="px-8 pb-8 space-y-6">
+             <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest text-center">請在下方輸入字樣以確認</p>
+                <p className="text-lg font-black text-slate-800 text-center tracking-[0.2em]">DELETE</p>
+                <input 
+                  type="text"
+                  autoFocus
+                  placeholder="請在此處輸入..."
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-center text-sm font-black text-red-500 outline-none focus:border-red-300 transition-all uppercase"
+                />
+             </div>
+
+             <div className="space-y-3">
+                <button 
+                  onClick={onConfirm}
+                  disabled={input !== "DELETE" || isDeleting}
+                  className="w-full py-4 bg-red-500 text-white rounded-2xl font-black text-sm active:scale-95 disabled:opacity-30 disabled:grayscale transition-all shadow-lg shadow-red-200 flex items-center justify-center gap-2"
+                >
+                   {isDeleting ? (
+                     <RefreshCw size={18} className="animate-spin" />
+                   ) : (
+                     <Trash size={18} />
+                   )}
+                   確認並執行刪除
+                </button>
+                <button 
+                  onClick={onClose}
+                  disabled={isDeleting}
+                  className="w-full py-4 bg-slate-50 text-slate-400 rounded-2xl font-black text-sm active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                   <X size={18} /> 取消返回
+                </button>
+             </div>
+
+             <p className="text-[10px] text-slate-300 font-bold text-center italic leading-relaxed">
+                * 註：若因帳號刪除導致禮物卡餘額遺失，開發者概不負責。
+             </p>
+          </div>
+       </div>
     </div>
   );
 }
