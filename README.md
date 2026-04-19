@@ -10,10 +10,11 @@
 
 <br />
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jzc0220)
-![Sinopac](https://img.shields.io/badge/永豐銀行-申請中-lightgrey?style=for-the-badge)
+## 💖 贊助開發者 (Support)
+本專案為 **非營利性質的公益開發**，旨在為使用者提供免費且安全的工具。然而，維護伺服器與持續開發仍需一定的成本，非常需要大家的支持與鼓勵！
 
-</div>
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jzc0220)
+[![Sinopac](https://img.shields.io/badge/永豐銀行-贊助支持-red?style=for-the-badge&logo=SinoPac)](https://gift.jzc.tw) *(申請中)*
 
 ---
 
@@ -67,6 +68,11 @@ cosign verify-blob source.tar.gz \
   --certificate-identity-regexp "https://github.com/jhouzihcing/gift.jzc.tw/.github/workflows/release.yml@refs/tags/v.*" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 ```
+
+## 💬 聯繫與回饋 (Feedback)
+如果您有任何功能許願、建議或發現錯誤，歡迎加入我們的 LINE 官方帳號與我們聯絡：
+
+- **LINE 官方帳號**：[點擊加入好友](https://line.me/R/ti/p/@300dqnfz) (或搜尋 `@300dqnfz`)
 
 ---
 <div align="center">
