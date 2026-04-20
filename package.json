@@ -1,6 +1,12 @@
 {
   "name": "sgcm-web",
-  "version": "2.33.0",
+  "version": "2.34.0",
+  "browserslist": [
+    "> 0.5%",
+    "last 2 versions",
+    "Firefox ESR",
+    "not dead"
+  ],
   "private": true,
   "scripts": {
     "dev": "next dev -p 4000",

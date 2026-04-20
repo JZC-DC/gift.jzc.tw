@@ -4,9 +4,9 @@
 ### 全方位的超商卡片管理與加密同步工具
 *An exquisite & secure card manager built for privacy and convenience.*
 
-[![CI/CD Build](https://github.com/jhouzihcing/gift.jzc.tw/actions/workflows/ci.yml/badge.svg)](https://github.com/jhouzihcing/gift.jzc.tw/actions/workflows/ci.yml)
-[![Security: CodeQL](https://github.com/jhouzihcing/gift.jzc.tw/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/jhouzihcing/gift.jzc.tw/actions/workflows/codeql-analysis.yml)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/jhouzihcing/gift.jzc.tw/badge)](https://securityscorecards.dev/viewer/?uri=github.com/jhouzihcing/gift.jzc.tw)
+[![CI/CD Build](https://github.com/JZC-DC/gift.jzc.tw/actions/workflows/ci.yml/badge.svg)](https://github.com/JZC-DC/gift.jzc.tw/actions/workflows/ci.yml)
+[![Security: CodeQL](https://github.com/JZC-DC/gift.jzc.tw/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/JZC-DC/gift.jzc.tw/actions/workflows/codeql-analysis.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/JZC-DC/gift.jzc.tw/badge)](https://securityscorecards.dev/viewer/?uri=github.com/JZC-DC/gift.jzc.tw)
 
 <br />
 
@@ -73,7 +73,7 @@ npm run dev
 cosign verify-blob source.tar.gz \
   --signature source.tar.gz.sig \
   --certificate source.tar.gz.pem \
-  --certificate-identity-regexp "https://github.com/jhouzihcing/gift.jzc.tw/.github/workflows/release.yml@refs/tags/v.*" \
+  --certificate-identity-regexp "https://github.com/JZC-DC/gift.jzc.tw/.github/workflows/release.yml@refs/tags/v.*" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 ```
 

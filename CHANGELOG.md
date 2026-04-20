@@ -1,5 +1,16 @@
 # 更新日誌 (Changelog)
 
+## [2.34.0] - 2026-04-20
+### 🚀 隱私政策重塑與效能全面優化 (Privacy Redesign & Performance)
+- **隱私權介面美化**：採用毛玻璃 (Glassmorphism) 設計風格，搭配高對比配色與微動效，顯著提升法律條款的閱讀美感。
+- **雙語全文條款**：正式置入完整的中文法律條款及對應的英文翻譯版，並優化響應式佈局，符合 Google 審核標準與本地法規要求。
+- **效能有感優化**：
+    - **JS 瘦身**：配置 `browserslist` 以減少冗餘的 JavaScript Polyfills（如 `Array.at`），預估節省 bundle size 約 12 KiB。
+    - **圖片優化**：將首頁 Logo 升級為 Next.js `Image` 組件，並設定 `priority` 載入，大幅降低 LCP 延遲。
+- **開源連結更新**：全站 GitHub 連結正式遷移至 `https://github.com/JZC-DC/gift.jzc.tw`（原路徑已棄用）。
+- **版本號同步**：將應用程式、文檔與依賴標誌的版本號統一同步至 v2.34.0。
+
+
 ## [2.33.0] - 2026-04-19
 ### ⚖️ 隱私政策法律優化與安全刪除 (Legal & Deletion)
 - **法律條款精煉**：依據《個資法》第 11 及 27 條優化隱私政策。加入「損害賠償責任上限零元」及「中華民國法律管轄」等強效保護條款。
@@ -32,7 +43,7 @@
 
 ## [2.30.0] - 2026-04-16
 ### 📂 開源透明化與無用資產清理 (Open Source & Cleanup)
-- **程式碼公開**：在隱私權頁面中補上 GitHub 開源專案連結 ([gift.jzc.tw](https://github.com/jhouzihcing/gift.jzc.tw))，強化專案透明度與信任感。
+- **程式碼公開**：在隱私權頁面中補上 GitHub 開源專案連結 ([gift.jzc.tw](https://github.com/JZC-DC/gift.jzc.tw))，強化專案透明度與信任感。
 - **公共資源瘦身**：清理 `public` 目錄下無用的 Next.js 預設圖檔（如 `next.svg`, `vercel.svg` 等），保持專案輕量化。
 - **更新版本資訊**：升級至 v2.30.0。
 

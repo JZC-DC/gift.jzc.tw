@@ -9,7 +9,7 @@
 - 共同維護一個充滿善意與包容性的環境。
 
 ## 🐛 回報問題 (Reporting Bugs)
-如果您發現了 Bug，請在 [GitHub Issues](https://github.com/jhouzihcing/gift.jzc.tw/issues) 中提交。為幫助我們快速修復，請包含以下資訊：
+如果您發現了 Bug，請在 [GitHub Issues](https://github.com/JZC-DC/gift.jzc.tw/issues) 中提交。為幫助我們快速修復，請包含以下資訊：
 - **問題描述**：發生了什麼事？預期的結果是什麼？
 - **重現步驟**：請提供詳細的步驟。
 - **環境資訊**：作業系統、瀏覽器版本、裝置型號等。
@@ -26,7 +26,7 @@
 本專案採用 **Next.js 15** 與 **Tailwind CSS v4**。
 ```bash
 # 複製專案
-git clone https://github.com/jhouzihcing/gift.jzc.tw.git
+git clone https://github.com/JZC-DC/gift.jzc.tw.git
 cd gift.jzc.tw
 
 # 安裝依賴

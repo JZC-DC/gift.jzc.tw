@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { VERSION } from "@/constants/version";
 
@@ -43,12 +44,14 @@ export default function Home() {
       <div className="z-10 flex flex-col items-center w-full max-w-sm gap-12 text-center">
         
         <div className="flex flex-col items-center">
-          <div className="w-20 h-20 rounded-[1.5rem] flex items-center justify-center mb-8 shadow-2xl relative overflow-hidden bg-white border border-slate-100 p-2">
-             {/* eslint-disable-next-line @next/next/no-img-element */}
-             <img 
+          <div className="w-24 h-24 rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl relative overflow-hidden bg-white border border-slate-100 p-3">
+             <Image 
                src="/logo.png" 
                alt="SGCM Logo" 
-               className="w-full h-full object-cover rounded-xl"
+               width={80}
+               height={80}
+               priority
+               className="w-full h-full object-contain rounded-2xl"
              />
           </div>
           <h1 className="text-3xl font-black tracking-tight text-slate-900 relative">
