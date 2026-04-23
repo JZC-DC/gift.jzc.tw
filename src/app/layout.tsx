@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     description: "全方位超商卡片管理與加密同步工具",
   },
   verification: {
-    google: "cef01WpDC7VBZmuRk_0KfG_BZu5OFo4oyyK-9OMeUlg",
+    google: "google2724af9db4dd6e10",
   },
 };
 
